@@ -1,53 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 域名已指向 https://chai.aibay.asia；条目为示例文章，发布真实内容后同步更新 -->
+<!-- 由 scripts/gen-rss.mjs 自动生成，请勿手改；更新内容请改 assets/js/data.js 后重新运行该脚本 -->
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>观子喻知 YuSpectra</title>
-    <link>https://chai.aibay.asia/</link>
-    <description>向外体察，读懂万象，启思创造，拥抱探索。To observe, to understand, to create, to embrace.</description>
+    <link>https://yuspectra.github.io/chaiAI/</link>
+    <description>欢迎来到【观子喻知】。向外体察，读懂万象，启思创造，拥抱探索。内容持续更新，邀你一同探寻。</description>
     <language>zh-CN</language>
-    <lastBuildDate>Sun, 08 Nov 2026 12:00:00 +0800</lastBuildDate>
-    <atom:link href="https://chai.aibay.asia/rss.xml" rel="self" type="application/rss+xml"/>
+    <lastBuildDate>Sun, 08 Nov 2026 17:47:06 +0800</lastBuildDate>
+    <atom:link href="https://yuspectra.github.io/chaiAI/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>[视频] 给一段旧影像上色</title>
+      <link>https://yuspectra.github.io/chaiAI/video.html?slug=colorize-old-footage</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/video.html?slug=colorize-old-footage</guid>
+      <pubDate>Fri, 30 Oct 2026 09:00:00 +0800</pubDate>
+      <category>视频</category>
+      <description>拿一段十年前的家庭影像做上色与补帧，记录哪些细节是被「合理地想象」出来的，以及我为什么保留了几处明显的瑕疵。</description>
+    </item>
     <item>
       <title>把一本书拆成一张可执行的地图</title>
-      <link>https://chai.aibay.asia/note.html?slug=map-of-a-book</link>
-      <guid>https://chai.aibay.asia/note.html?slug=map-of-a-book</guid>
+      <link>https://yuspectra.github.io/chaiAI/note.html?slug=map-of-a-book</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/note.html?slug=map-of-a-book</guid>
       <pubDate>Wed, 28 Oct 2026 09:00:00 +0800</pubDate>
+      <category>读书笔记</category>
       <description>读书笔记不必复述全书。把作者的论证拆成「问题—证据—行动」，一张纸就能带走一本书。</description>
     </item>
     <item>
+      <title>[视频] 三分钟读懂一本书的骨架</title>
+      <link>https://yuspectra.github.io/chaiAI/video.html?slug=three-minutes-book-skeleton</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/video.html?slug=three-minutes-book-skeleton</guid>
+      <pubDate>Sat, 24 Oct 2026 09:00:00 +0800</pubDate>
+      <category>视频</category>
+      <description>把「问题—证据—行动」三栏笔记法拍成一支短片，用一本随手抽到的书现场演示。</description>
+    </item>
+    <item>
       <title>第一帧是想象，最后一帧是现场</title>
-      <link>https://chai.aibay.asia/note.html?slug=first-frame-last-frame</link>
-      <guid>https://chai.aibay.asia/note.html?slug=first-frame-last-frame</guid>
-      <pubDate>Tue, 21 Oct 2026 09:00:00 +0800</pubDate>
+      <link>https://yuspectra.github.io/chaiAI/note.html?slug=first-frame-last-frame</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/note.html?slug=first-frame-last-frame</guid>
+      <pubDate>Wed, 21 Oct 2026 09:00:00 +0800</pubDate>
+      <category>观察随笔</category>
       <description>同一场黄昏，一张是出门前画好的预演，一张是现场拍下的最后一帧。差别不在画质，而在「我在不在场」。</description>
     </item>
     <item>
       <title>写得太满，就没有意外了</title>
-      <link>https://chai.aibay.asia/note.html?slug=a-window-in-the-prompt</link>
-      <guid>https://chai.aibay.asia/note.html?slug=a-window-in-the-prompt</guid>
+      <link>https://yuspectra.github.io/chaiAI/note.html?slug=a-window-in-the-prompt</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/note.html?slug=a-window-in-the-prompt</guid>
       <pubDate>Wed, 14 Oct 2026 09:00:00 +0800</pubDate>
+      <category>创作手记</category>
       <description>把要求列得越满，结果越像清单的复印件。留一点不确定，创作才有呼吸的缝隙。</description>
     </item>
     <item>
       <title>城市夜行日志：光是另一种语言</title>
-      <link>https://chai.aibay.asia/note.html?slug=city-at-night-log</link>
-      <guid>https://chai.aibay.asia/note.html?slug=city-at-night-log</guid>
+      <link>https://yuspectra.github.io/chaiAI/note.html?slug=city-at-night-log</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/note.html?slug=city-at-night-log</guid>
       <pubDate>Tue, 06 Oct 2026 09:00:00 +0800</pubDate>
+      <category>影像笔记</category>
       <description>一支三分钟夜拍视频的文字版：关于灯光、反射，以及为什么我总在天黑之后才出门。</description>
     </item>
     <item>
+      <title>[视频] 城市夜行 · 夜拍 log</title>
+      <link>https://yuspectra.github.io/chaiAI/video.html?slug=neon-city-walk</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/video.html?slug=neon-city-walk</guid>
+      <pubDate>Tue, 06 Oct 2026 09:00:00 +0800</pubDate>
+      <category>视频</category>
+      <description>无解说环境声，只有天桥、雨后路面和收工时手抖的那半秒。文字版在观测笔记里。</description>
+    </item>
+    <item>
       <title>读《技术物的政治》：工具也在塑造我们</title>
-      <link>https://chai.aibay.asia/note.html?slug=tools-shape-us</link>
-      <guid>https://chai.aibay.asia/note.html?slug=tools-shape-us</guid>
+      <link>https://yuspectra.github.io/chaiAI/note.html?slug=tools-shape-us</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/note.html?slug=tools-shape-us</guid>
       <pubDate>Tue, 29 Sep 2026 09:00:00 +0800</pubDate>
+      <category>读书笔记</category>
       <description>我们以为自己在用工具，其实也在被工具的默认设置重新安排注意力与判断。</description>
     </item>
     <item>
+      <title>[视频] 一句话，四格分镜</title>
+      <link>https://yuspectra.github.io/chaiAI/video.html?slug=one-line-storyboard</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/video.html?slug=one-line-storyboard</guid>
+      <pubDate>Sat, 26 Sep 2026 09:00:00 +0800</pubDate>
+      <category>视频</category>
+      <description>从一句情绪描述出发，画四格分镜，再逐格检查哪些画面是那句话给的、哪些是我自己补的。</description>
+    </item>
+    <item>
       <title>读完就忘，是因为少问了三个问题</title>
-      <link>https://chai.aibay.asia/note.html?slug=three-questions-after-reading</link>
-      <guid>https://chai.aibay.asia/note.html?slug=three-questions-after-reading</guid>
+      <link>https://yuspectra.github.io/chaiAI/note.html?slug=three-questions-after-reading</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/note.html?slug=three-questions-after-reading</guid>
       <pubDate>Fri, 18 Sep 2026 09:00:00 +0800</pubDate>
+      <category>读书笔记</category>
       <description>合上书之后，我只会问自己三件事：它反对什么、它靠什么站住、它改变了我的哪个动作。</description>
     </item>
   </channel>

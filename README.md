@@ -83,7 +83,14 @@ npx serve .
 | 标签、内容标签词条、四关键词、导航 | `TAGS`、`TICKER`、`KEYWORDS`、`NAV` |
 | 页脚社交链接、版权文案 | `SITE.social`、`SITE.copyright` |
 
-新增内容时，记得同步更新 `sitemap.xml` 和 `rss.xml`（它们是静态文件，不会自动更新）。
+新增内容时，记得同步更新 `sitemap.xml` 和 `rss.xml`。其中 `rss.xml` 可以直接用脚本从 `data.js` 重新生成：
+
+```bash
+node scripts/gen-rss.mjs                              # 默认线上地址 https://yuspectra.github.io/chaiAI
+node scripts/gen-rss.mjs --base https://chai.aibay.asia   # 自定义域名解绑后切回来
+```
+
+脚本会自动把 `NOTES`（文章）和 `VIDEOS`（视频，标题带「[视频]」前缀）按日期倒序写入 `rss.xml`。所有 HTML 页面的 `<head>` 里已带 `<link rel="alternate" type="application/rss+xml">`，阅读器可自动发现订阅源。
 
 **替换图片**：直接**同名覆盖** `assets/img/` 里的 JPG 即可（`note-01.jpg` … `note-06.jpg`、`video-01.jpg` … `video-04.jpg`、`img-01.jpg` … `img-08.jpg`），不用改代码；如果换了文件名，再改 `data.js` 里对应的 `cover` / `src`。
 

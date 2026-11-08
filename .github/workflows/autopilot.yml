@@ -43,7 +43,7 @@ jobs:
         run: |
           git config user.name "autopilot-bot"
           git config user.email "actions@github.com"
-          git add docs/radar-latest.md docs/weekly-latest.md docs/radar-history.md || true
+          git add -A docs 2>/dev/null || true   # 单文件不存在会让整个 git add 失败，按目录加
           git commit -m "chore(autopilot): 心跳报告 $(date -u +'%Y-%m-%d')" || echo "无变更，跳过"
           git pull --rebase --autostash || true
           git push

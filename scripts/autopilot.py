@@ -23,6 +23,7 @@
 """
 
 import json
+import re
 import subprocess
 import sys
 import time
@@ -46,11 +47,43 @@ def _docs(name):
 
 # ── 三大心跳环节（fail-soft） ──
 
+def dec(v):
+    """邮件头解码：QQ/FormSubmit 中转常带非标准 charset（unknown-8bit 等），LookupError 必须兜住。"""
+    from email.header import decode_header
+    out = ""
+    for s, enc in decode_header(v or ""):
+        if not isinstance(s, bytes):
+            out += s
+            continue
+        try:
+            out += s.decode(enc or "utf-8", "ignore")
+        except (LookupError, UnicodeDecodeError):
+            out += s.decode("utf-8", "ignore")
+    return out
+
+
+def body_of(part):
+    """取邮件正文文本，非标准 charset 一律回退 utf-8。"""
+    raw = part.get_payload(decode=True)
+    if not isinstance(raw, bytes):
+        return raw or ""
+    try:
+        return raw.decode(part.get_content_charset() or "utf-8", "ignore")
+    except (LookupError, UnicodeDecodeError):
+        return raw.decode("utf-8", "ignore")
+
+
 def beat_feedback():
-    """QQ 邮箱反馈 → ima 网站邮箱信息。"""
+    """QQ 邮箱反馈 → ima 网站邮箱信息。
+
+    CI 实测教训：跨洋连 QQ IMAP 会滴漏式传输，整封拉 20+ 封能把 job 拖死 55 分钟。
+    因此两遍式：先只取头部筛选（表单通知 + 真人来信），再只拉入选者的全文；
+    全程受 DEADLINE 预算约束；已在 ima 的同名文档跳过，避免每日重复入库。
+    """
     import imaplib
     import email as em
     from email.header import decode_header
+    from email.utils import parseaddr
     cfgp = Path.home() / ".config/ima/email.json"
     if not cfgp.exists():
         return "skip: 无 email.json"
@@ -61,34 +94,28 @@ def beat_feedback():
     m.login(cfg["user"], cfg["password"])
     m.select(cfg.get("mailbox", "INBOX"), readonly=True)
     _, data = m.search(None, f'(SINCE "{since}")')
-    nums = data[0].split()[-10:]  # 单轮上限 10 封：控住 ima 限流与 job 时长
+    nums = data[0].split()[-40:]
+    SYS = ("noreply", "no-reply", "postmaster", "mailer-daemon",
+           "notifications@github", "@github.com")
+    keep = []
+    for num in nums:  # 第一遍：只取头，筛选
+        if DEADLINE and time.time() > DEADLINE:
+            break
+        _, d = m.fetch(num, "(BODY.PEEK[HEADER.FIELDS (SUBJECT FROM DATE MESSAGE-ID)])")
+        h = em.message_from_bytes(d[0][1])
+        frm = dec(h.get("From")).lower()
+        if "formsubmit.co" in frm:
+            keep.append((num, h))
+        elif not any(k in frm for k in SYS) and cfg["user"].lower() not in frm:
+            keep.append((num, h))  # 真人直投来信也算网站反馈
+    keep = keep[-10:]  # 单轮上限 10 封：控住 ima 限流与 job 时长
     msgs = []
-    for num in nums:
+    for num, h in keep:  # 第二遍：只拉入选者全文
+        if DEADLINE and time.time() > DEADLINE:
+            print("  取全文触达时间预算，截断", file=sys.stderr)
+            break
         _, d = m.fetch(num, "(RFC822)")
         msg = em.message_from_bytes(d[0][1])
-
-        def dec(v):
-            out = ""
-            for s, enc in decode_header(v or ""):
-                if not isinstance(s, bytes):
-                    out += s
-                    continue
-                # QQ/FormSubmit 中转常带非标准 charset（unknown-8bit 等），LookupError 必须兜住
-                try:
-                    out += s.decode(enc or "utf-8", "ignore")
-                except (LookupError, UnicodeDecodeError):
-                    out += s.decode("utf-8", "ignore")
-            return out
-
-        def body_of(part):
-            raw = part.get_payload(decode=True)
-            if not isinstance(raw, bytes):
-                return raw or ""
-            try:
-                return raw.decode(part.get_content_charset() or "utf-8", "ignore")
-            except (LookupError, UnicodeDecodeError):
-                return raw.decode("utf-8", "ignore")
-
         body = ""
         if msg.is_multipart():
             for part in msg.walk():
@@ -97,30 +124,49 @@ def beat_feedback():
                     break
         else:
             body = body_of(msg)
-        msgs.append({"subject": dec(msg.get("Subject")) or "(无主题)",
-                     "from": dec(msg.get("From")), "date": dec(msg.get("Date")),
+        msgs.append({"subject": dec(h.get("Subject")) or "(无主题)",
+                     "from": dec(h.get("From")), "date": dec(h.get("Date")),
                      "body": body.strip()[:5000]})
     m.logout()
     if not msgs:
         return "ok: 近 7 天无反馈"
     kb = ima_client.kb_id()
     folder = ima_client.ensure_folder(kb, KB_DIR["feedback"])
-    n = 0
+    # 已有同名文档跳过（否则每日重跑会以时间戳后缀重复入库）
+    existing = set()
+    cursor = ""
+    while True:
+        d2 = ima_client.post("openapi/wiki/v1/get_knowledge_list",
+                             {"knowledge_base_id": kb, "folder_id": folder,
+                              "cursor": cursor, "limit": 50})
+        for it in d2.get("knowledge_list") or []:
+            t = it.get("title") or ""
+            existing.add(t)
+            existing.add(t if t.endswith(".md") else t + ".md")  # ima 标题可能不带扩展名，两种都记
+        cursor = d2.get("next_cursor") or ""
+        if not cursor:
+            break
+    n = skipped = 0
     for i, msg in enumerate(msgs):
         if DEADLINE and time.time() > DEADLINE:
             print(f"  反馈入库到 {n}/{len(msgs)} 触达时间预算，剩余跳过（心跳优先）", file=sys.stderr)
             break
-        if i:
+        name = f"反馈-{msg['date'][:16]}-{msg['subject'][:20]}.md"
+        name = re.sub(r'[\\/:*?"<>|]', "_", name)
+        if name in existing:
+            skipped += 1
+            continue
+        if n:
             time.sleep(3)  # 上传之间拉开间隔，避开 ima 频率限制
         doc = (f"# 反馈 {msg['subject']}\n\n- 收件: {msg['date']}\n- 发件人: {msg['from']}\n"
                f"- 归档: {time.strftime('%Y-%m-%d %H:%M')} autopilot\n- 状态: 待处理\n\n"
                f"## 原文\n\n{msg['body']}\n\n## 摘要（下一轮迭代信号）\n\n（待补）\n")
         try:
-            ima_client.upload_md(kb, folder, f"反馈-{time.strftime('%Y%m%d')}-{msg['subject'][:20]}.md", doc)
+            ima_client.upload_md(kb, folder, name, doc)
             n += 1
         except Exception as e:
             print(f"  反馈入库失败（跳过）: {str(e)[:80]}", file=sys.stderr)
-    return f"ok: {n}/{len(msgs)} 封入 ima/{KB_DIR['feedback']}"
+    return f"ok: {n} 封入 ima/{KB_DIR['feedback']}（跳过已在库 {skipped} 封）"
 
 
 def append_radar_history(hits):

@@ -198,12 +198,19 @@ function rateLimited(ip) {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
+const KIND_LABELS = {
+  message: '站内留言',
+  need: '工作坊需求',
+  broker: '拆搭子牵线',
+}
+
 function composeEmail(d) {
-  const kind = d.kind === 'need' ? '工作坊需求' : '站内留言'
+  const kind = d.kind === 'message' ? 'message' : d.kind === 'broker' ? 'broker' : 'need'
+  const label = KIND_LABELS[kind]
   const who = clean(d.name, 40) || '匿名站友'
   const contact = clean(d.contact, 120)
   const lines = [
-    `【${kind}】`,
+    `【${label}】`,
     '',
     `称呼：${who}`,
     `联系方式：${contact || '（未留，无需回复）'}`,
@@ -212,18 +219,18 @@ function composeEmail(d) {
     '',
     '—— 内容 ——',
   ]
-  if (d.kind === 'need') {
-    lines.push(
-      `想拆的软件：${clean(d.software, 200) || '（未填）'}`,
-      `现在怎么做：${clean(d.scene, 800) || '（未填）'}`,
-      `期望效果：${clean(d.expect, 800) || '（未填）'}`,
-    )
-  } else {
+  if (kind === 'message') {
     lines.push(clean(d.msg, 1200) || '（空白）')
+  } else {
+    lines.push(
+      `主题：${clean(d.software, 200) || '（未填）'}`,
+      `背景：${clean(d.scene, 800) || '（未填）'}`,
+      `诉求：${clean(d.expect, 800) || '（未填）'}`,
+    )
   }
   lines.push('', '—— 直接回复本邮件即可联系对方（若对方留了邮箱）——')
   return {
-    subject: `【拆AI·${kind}】${who}`,
+    subject: `【拆AI·${label}】${who}`,
     text: lines.join('\n'),
   }
 }

@@ -6,25 +6,30 @@
 
 import { CONTACT_EMAIL, CONTACT_WECHAT, MAIL_API, MAIL_READY } from '../config'
 
+const KIND_LABELS = {
+  message: '站内留言',
+  need: '工作坊需求',
+  broker: '拆搭子牵线',
+}
+
 function buildMailto(payload) {
-  const subject =
-    payload.kind === 'need'
-      ? `【拆AI·工作坊需求】${payload.software || '新需求'}`
-      : `【拆AI·站内留言】${payload.name || '匿名站友'}`
+  const label = KIND_LABELS[payload.kind] || KIND_LABELS.message
+  const subject = `【拆AI·${label}】${payload.name || payload.software || '匿名站友'}`
 
   const lines =
-    payload.kind === 'need'
+    (payload.kind || 'message') === 'message'
       ? [
-          `想拆的软件：${payload.software || '（未填）'}`,
-          `现在怎么做：${payload.scene || '（未填）'}`,
-          `期望效果：${payload.expect || '（未填）'}`,
-          `联系方式：${payload.contact || '（未填）'}`,
-        ]
-      : [
           `称呼：${payload.name || '匿名'}`,
           `联系方式：${payload.contact || '（未填）'}`,
           '',
           payload.msg || '',
+        ]
+      : [
+          `称呼：${payload.name || '（未填）'}`,
+          `主题：${payload.software || '（未填）'}`,
+          `背景：${payload.scene || '（未填）'}`,
+          `诉求：${payload.expect || '（未填）'}`,
+          `联系方式：${payload.contact || '（未填）'}`,
         ]
 
   const url = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(

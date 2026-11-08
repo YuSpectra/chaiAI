@@ -1,3 +1,5 @@
+import { submitToOwner } from '../lib/mailer'
+import { CONTACT_EMAIL, CONTACT_WECHAT } from '../config'
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import skills from '../data/skills'
@@ -71,9 +73,8 @@ const DEFAULT_MODE = {
 const ALL_MODES = { ...MODES, start: DEFAULT_MODE }
 
 const CONTACT_URL = 'https://www.chaishubang.com/'
-const OWNER_MAIL = '554176937@qq.com'
-const OWNER_WX = 'ikoning365'
-const NEEDS_API = 'https://api.aibay.asia/needs/needs'
+const OWNER_MAIL = CONTACT_EMAIL
+const OWNER_WX = CONTACT_WECHAT
 
 // ===== 牵线弹窗表单 =====
 function BrokerModal({ p, onClose }) {
@@ -105,24 +106,17 @@ function BrokerModal({ p, onClose }) {
     if (form.contact.trim().length < 5) { setState('error'); setMsg('请留联系方式（微信号 / 手机号 / 邮箱）'); return }
     if (picked.length === 0 && form.note.trim().length < 4) { setState('error'); setMsg('挑一个感兴趣的合作模式，或写一句你的想法'); return }
     setState('sending'); setMsg('')
-    try {
-      const r = await fetch(NEEDS_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          software: `【拆搭子牵线】${form.name.trim()}（${form.rudder.trim() || '未填分舵'}）`,
-          scene: `想聊的模式：${modeNames.length ? modeNames.join('；') : '待定'}${isPerson && p.t && p.t.length ? ` ｜ 标签：${p.t.join('/')}` : ''}`,
-          expect: form.note.trim() || '（未填具体想法，待联系）',
-          contact: form.contact.trim(),
-          website: '',
-        }),
-      })
-      const d = await r.json().catch(() => ({}))
-      if (r.ok && d.ok) setState('ok')
-      else { setState('error'); setMsg(d.error || '提交失败，请稍后再试') }
-    } catch {
-      setState('error'); setMsg('网络异常，提交失败——可改用邮件发送')
-    }
+    const r = await submitToOwner({
+      kind: 'broker',
+      name: form.name.trim(),
+      contact: form.contact.trim(),
+      software: `${form.name.trim()}（${form.rudder.trim() || '未填分舵'}）`,
+      scene: `想聊的模式：${modeNames.length ? modeNames.join('；') : '待定'}${isPerson && p.t && p.t.length ? ` ｜ 标签：${p.t.join('/')}` : ''}`,
+      expect: form.note.trim() || '（未填具体想法，待联系）',
+      source: '拆搭子·牵线弹窗',
+    })
+    if (r.ok) setState('ok')
+    else { setState('error'); setMsg(r.error) }
   }
 
   return (

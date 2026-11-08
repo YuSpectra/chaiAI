@@ -28,7 +28,11 @@ function MessageBoard() {
     })
     if (r.ok) {
       setState('ok')
-      setTip(r.fallback ? '已打开你的邮件客户端，点「发送」即可送达' : '留言已送达，感谢！')
+      setTip(
+        r.fallback
+          ? '已打开你的邮件客户端，点「发送」即可送达'
+          : '留言已送达，感谢！留了邮箱的话，稍后会收到一封确认信。',
+      )
       setForm({ name: '', msg: '', contact: '', website: '' })
     } else {
       setState('error')
@@ -40,7 +44,7 @@ function MessageBoard() {
     <form onSubmit={submit} className="p-6 rounded-xl bg-dark-card-hover/50 border border-dark-border space-y-3">
       <div className="grid sm:grid-cols-2 gap-3">
         <input value={form.name} onChange={set('name')} maxLength={20} className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-[13px] text-[#1d1d1f] outline-none focus:ring-2 focus:ring-neon-purple/30" placeholder="怎么称呼你？（可不填）" />
-        <input value={form.contact} onChange={set('contact')} maxLength={40} className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-[13px] text-[#1d1d1f] outline-none focus:ring-2 focus:ring-neon-purple/30" placeholder="联系方式，想收到回复就留（可不填）" />
+        <input value={form.contact} onChange={set('contact')} maxLength={40} className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-[13px] text-[#1d1d1f] outline-none focus:ring-2 focus:ring-neon-purple/30" placeholder="邮箱 / 微信（留邮箱会收到自动确认信）" />
       </div>
       <textarea value={form.msg} onChange={set('msg')} maxLength={500} rows={3} className="w-full rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-[13px] text-[#1d1d1f] outline-none focus:ring-2 focus:ring-neon-purple/30 resize-none" placeholder="给杨教练和站友们说句话——建议、疑问、感想都行" />
       <input type="text" name="website" value={form.website} onChange={set('website')} tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
@@ -198,7 +202,7 @@ export default function About() {
           {/* 留言板 */}
           <div className="mb-10">
             <h2 className="text-xl font-bold text-[#1d1d1f] mb-2">留言板</h2>
-            <p className="text-sm text-[#6e6e73] mb-4">匿名即可，不用注册任何账号；想收到回复就顺手留个联系方式。</p>
+            <p className="text-sm text-[#6e6e73] mb-4">匿名即可，不用注册任何账号。留个邮箱，我们会自动回你一封确认信。</p>
             <MessageBoard />
           </div>
 

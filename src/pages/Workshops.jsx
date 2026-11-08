@@ -100,7 +100,7 @@ function NeedsForm() {
         </div>
         <div>
           <label className="block text-[13px] font-bold text-[#1d1d1f] mb-1.5">联系方式 <span className="text-[#ff2d55]">*</span></label>
-          <input value={form.contact} onChange={set('contact')} maxLength={60} className="w-full rounded-xl bg-[#f5f5f7] px-4 py-3 text-[14px] text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0071e3]/40" placeholder="微信号 / 手机号" />
+          <input value={form.contact} onChange={set('contact')} maxLength={60} className="w-full rounded-xl bg-[#f5f5f7] px-4 py-3 text-[14px] text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0071e3]/40" placeholder="微信号 / 手机号 / 邮箱（留邮箱收自动确认信）" />
         </div>
         <div className="md:col-span-2">
           <label className="block text-[13px] font-bold text-[#1d1d1f] mb-1.5">你现在是怎么做的</label>
@@ -113,7 +113,7 @@ function NeedsForm() {
       </div>
       <input type="text" name="website" value={form.website} onChange={set('website')} tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
       {state === 'ok' ? (
-        <div className="mt-5 rounded-xl bg-[#34c759]/10 text-[#1d8a3e] text-[14px] px-4 py-3 font-semibold">已收到！我们按需求排期后，会通过你留的联系方式告诉你。</div>
+        <div className="mt-5 rounded-xl bg-[#34c759]/10 text-[#1d8a3e] text-[14px] px-4 py-3 font-semibold">已收到！我们按需求排期后，会通过你留的联系方式告诉你。留了邮箱的话，稍后会收到一封确认信。</div>
       ) : (
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <button type="submit" disabled={state === 'sending'} className="btn-primary">{state === 'sending' ? '提交中…' : '提交需求 →'}</button>

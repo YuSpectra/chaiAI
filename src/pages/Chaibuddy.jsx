@@ -171,7 +171,7 @@ function BrokerModal({ p, onClose }) {
 
             <label className="flex flex-col gap-1 mb-3">
               <span className="text-[11px] font-bold text-[#1d1d1f]">联系方式 <span className="text-rose-500">*</span></span>
-              <input value={form.contact} onChange={set('contact')} maxLength={60} className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-[13px] text-[#1d1d1f] outline-none focus:ring-2 focus:ring-amber-500/40" placeholder="微信号 / 手机号 / 邮箱（站长通过它联系你）" />
+              <input value={form.contact} onChange={set('contact')} maxLength={60} className="rounded-xl bg-[#f5f5f7] px-3.5 py-2.5 text-[13px] text-[#1d1d1f] outline-none focus:ring-2 focus:ring-amber-500/40" placeholder="微信号 / 手机号 / 邮箱（留邮箱收自动确认信）" />
             </label>
 
             <label className="flex flex-col gap-1 mb-4">

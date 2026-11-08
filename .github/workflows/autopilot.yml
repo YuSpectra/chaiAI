@@ -1,0 +1,49 @@
+name: autopilot
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # UTC 01:00 = 北京 09:00：每日心跳（拉反馈+扫雷达；周一叠加周报）
+  workflow_dispatch:
+
+permissions:
+  contents: write  # 心跳报告回流 docs/ 需要
+
+concurrency:
+  group: autopilot
+  cancel-in-progress: true
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 还原邮箱配置（feedback 环节用）
+        run: |
+          if [ -n "${{ secrets.IMA_EMAIL_JSON }}" ]; then
+            mkdir -p ~/.config/ima
+            printf '%s' '${{ secrets.IMA_EMAIL_JSON }}' > ~/.config/ima/email.json
+          fi
+
+      - name: autopilot 心跳（周一自动叠加周报）
+        continue-on-error: true
+        env:
+          IMA_CLIENT_ID: ${{ secrets.IMA_CLIENT_ID }}
+          IMA_API_KEY: ${{ secrets.IMA_API_KEY }}
+          IMA_KB_ID: ${{ secrets.IMA_KB_ID }}
+        run: |
+          if [ "$(date -u +%u)" = "1" ]; then
+            python3 scripts/autopilot.py weekly
+          else
+            python3 scripts/autopilot.py daily
+          fi
+
+      - name: 报告回流 docs/
+        run: |
+          git config user.name "autopilot-bot"
+          git config user.email "actions@github.com"
+          git add docs/radar-latest.md docs/weekly-latest.md docs/radar-history.md || true
+          git commit -m "chore(autopilot): 心跳报告 $(date -u +'%Y-%m-%d')" || echo "无变更，跳过"
+          git pull --rebase --autostash || true
+          git push

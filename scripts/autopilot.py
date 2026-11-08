@@ -35,6 +35,13 @@ import ima_client
 
 KB_DIR = {"feedback": ima_client.DIR_FEEDBACK, "radar": ima_client.DIR_RADAR, "weekly": ima_client.DIR_WEEKLY}
 
+def _docs(name):
+    """docs/ 不存在就建（fork 站常无 docs/，否则写报告直接 ENOENT 断掉整个 beat）。"""
+    d = ROOT / "docs"
+    d.mkdir(parents=True, exist_ok=True)
+    return d / name
+
+
 
 # ── 三大心跳环节（fail-soft） ──
 
@@ -60,19 +67,33 @@ def beat_feedback():
         def dec(v):
             out = ""
             for s, enc in decode_header(v or ""):
-                out += s.decode(enc or "utf-8", "ignore") if isinstance(s, bytes) else s
+                if not isinstance(s, bytes):
+                    out += s
+                    continue
+                # QQ/FormSubmit 中转常带非标准 charset（unknown-8bit 等），LookupError 必须兜住
+                try:
+                    out += s.decode(enc or "utf-8", "ignore")
+                except (LookupError, UnicodeDecodeError):
+                    out += s.decode("utf-8", "ignore")
             return out
+
+        def body_of(part):
+            raw = part.get_payload(decode=True)
+            if not isinstance(raw, bytes):
+                return raw or ""
+            try:
+                return raw.decode(part.get_content_charset() or "utf-8", "ignore")
+            except (LookupError, UnicodeDecodeError):
+                return raw.decode("utf-8", "ignore")
 
         body = ""
         if msg.is_multipart():
             for part in msg.walk():
                 if part.get_content_type() == "text/plain":
-                    body = part.get_payload(decode=True).decode(
-                        part.get_content_charset() or "utf-8", "ignore")
+                    body = body_of(part)
                     break
         else:
-            b = msg.get_payload(decode=True)
-            body = b.decode(msg.get_content_charset() or "utf-8", "ignore") if isinstance(b, bytes) else (b or "")
+            body = body_of(msg)
         msgs.append({"subject": dec(msg.get("Subject")) or "(无主题)",
                      "from": dec(msg.get("From")), "date": dec(msg.get("Date")),
                      "body": body.strip()[:5000]})
@@ -96,7 +117,7 @@ def beat_feedback():
 
 def append_radar_history(hits):
     """雷达历史沉淀：每日一行进 docs/radar-history.md（radar-latest 只留最新，历史可回溯趋势）。"""
-    hist = ROOT / "docs/radar-history.md"
+    hist = _docs("radar-history.md")
     top = hits[0]["title"] if hits else "（无命中）"
     kws = "、".join(sorted({h["kw"] for h in hits[:10]})) or "-"
     row = f"| {time.strftime('%Y-%m-%d')} | {len(hits)} | {top} | {kws} |"
@@ -136,7 +157,7 @@ def beat_radar(keywords_fallback="AI,拆书,读书,写作,成长"):
         [f"- [{h['board']}] {h['title']}（热度 {h['hot']}｜{h['kw']}）" for h in hits[:30]] + [
         "", "## 下一步", "",
         "高热+站内有素材的优先；对 WorkBuddy 说「按雷达发一篇」", ""])
-    (ROOT / "docs/radar-latest.md").write_text(report, encoding="utf-8")
+    _docs("radar-latest.md").write_text(report, encoding="utf-8")
     append_radar_history(hits)
     if hits:
         try:
@@ -180,7 +201,7 @@ def beat_weekly():
               "优先三重交集：读者问得多的 × 雷达命中的 × ima 素材厚的。",
               "（人工批阅位：WorkBuddy/站长勾选 1-2 条进下周池）", ""]
     report = "\n".join(lines) + "\n"
-    (ROOT / "docs/weekly-latest.md").write_text(report, encoding="utf-8")
+    _docs("weekly-latest.md").write_text(report, encoding="utf-8")
     if ima_client.creds():
         try:
             kb = ima_client.kb_id()

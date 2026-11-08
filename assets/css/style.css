@@ -295,6 +295,19 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .field textarea { resize: vertical; min-height: 140px; line-height: 1.7; }
 .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); background: var(--surface); }
 .field input::placeholder, .field textarea::placeholder { color: #9aa2ae; }
+/* 公开意愿字段：暖色高亮，与其他字段明显区分，提醒读者注意默认是「愿意」 */
+.field--consent {
+  background: #fdf8ed;
+  border: 1px solid #ead9b4;
+  border-left: 3px solid #d8a441;
+  border-radius: 10px;
+  padding: 16px 18px;
+  gap: 10px;
+}
+.field--consent label { color: #8a5d16; font-weight: 600; }
+.field--consent .field__hint { color: #9c7c3e; font-weight: 400; }
+.field--consent select { border-color: #e3cf9f; background: #fffdf8; color: #5c4318; }
+.field--consent select:focus { border-color: #d8a441; background: #fff; }
 .letter__submit { justify-self: start; }
 .letter__privacy { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.7; }
 .letter__status { margin: 0; font-size: 13px; padding: 12px 14px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent-dark); border: 1px solid #cfe3df; }

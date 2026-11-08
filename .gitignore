@@ -32,3 +32,8 @@ api_books.json
 
 # local claude settings
 .claude/settings.local.json
+
+# cloudflare worker (secrets / build artifacts)
+worker/node_modules
+worker/.wrangler
+worker/.dev.vars

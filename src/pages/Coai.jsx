@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { CONTACT_EMAIL } from '../config'
 
 // ===== 六条合作线（与 Chaibuddy.jsx 的 MODES 同族，本页是展开版详细介绍）=====
 const PROJECTS = [
@@ -88,7 +89,7 @@ const PROJECTS = [
   },
 ]
 
-const OWNER_MAIL = '554176937@qq.com'
+const OWNER_MAIL = CONTACT_EMAIL
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },

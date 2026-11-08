@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { nextOpen } from '../data/workshops'
+import { CONTACT_EMAIL, CONTACT_WECHAT } from '../config'
 
 export default function Footer() {
   const nx = nextOpen()
@@ -31,7 +32,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-10 pt-6 border-t border-black/[.06] flex flex-col md:flex-row justify-between gap-2 text-[12px] text-[#86868b]">
-          <span>© 2026 杨辉（玄龙堂主理人） · 微信 ikoning365 · 邮箱 554176937@qq.com</span>
+          <span>© 2026 杨辉（玄龙堂主理人） · 微信 {CONTACT_WECHAT} · 邮箱 <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-[#0071e3] transition-colors">{CONTACT_EMAIL}</a></span>
           <span>方法论支持：拆书帮（chaishubang.net） · 拆为己用</span>
         </div>
       </div>

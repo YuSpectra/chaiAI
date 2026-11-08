@@ -1,0 +1,15 @@
+name = "chai-mail"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# 收件地址（可改成别的邮箱，但发信身份仍是下面 QQ_USER 那个 QQ 号）
+[vars]
+MAIL_TO = "1414330095@qq.com"
+# 允许调用此接口的前端来源，多个用英文逗号分隔
+ALLOWED_ORIGINS = "https://yuspectra.github.io,http://localhost:5173,http://localhost:4173"
+# 关掉访客自动回复就写 off
+AUTO_REPLY = "on"
+
+# 密钥不入库，用命令写入：
+#   npx wrangler secret put QQ_USER      -- 1414330095@qq.com
+#   npx wrangler secret put QQ_PASS      -- QQ 邮箱的 SMTP/IMAP 授权码（不是登录密码）

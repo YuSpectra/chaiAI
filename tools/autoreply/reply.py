@@ -112,6 +112,11 @@ def cell_text(raw: str) -> str:
     return re.sub(r"[ \t\r\f\v]+", " ", text).strip()
 
 
+def clean_header(value: str) -> str:
+    """邮件头不能含换行：折行的主题解码后可能带 \\r\\n，必须压成单行。"""
+    return re.sub(r"\s+", " ", (value or "")).strip()
+
+
 def message_text(msg) -> str:
     """取出正文（优先 HTML，FormSubmit 的表格在 HTML 里）。"""
     html_part, plain_part = "", ""
@@ -292,6 +297,8 @@ def reply_text(name: str, copy: dict, quoted: list) -> tuple[str, str]:
 
 def build_reply(to_addr: str, kind: str, fields: dict, orig, orig_subject: str, name: str) -> EmailMessage:
     copy = KIND_TEXT.get(kind, DEFAULT_KIND_TEXT)
+    orig_subject = clean_header(orig_subject)
+    name = clean_header(name)
     quoted = [
         (label, fields.get(label, ""))
         for label in ("留言内容", "主体", "背景", "诉求")
@@ -412,7 +419,12 @@ def main() -> int:
 
         name = (fields.get("称呼") or "").strip()
         to_addr = TEST_TO or visitor
-        reply = build_reply(to_addr, kind, fields, orig, subject, name)
+        try:
+            reply = build_reply(to_addr, kind, fields, orig, subject, name)
+        except Exception as exc:            # 单封邮件异常不该拖垮整轮
+            failed += 1
+            print(f"  [error] 生成回信失败：{exc}")
+            continue
 
         print(f"  回信 → {to_addr}（{kind}）主题：{subject[:40]}")
         if DRY_RUN:

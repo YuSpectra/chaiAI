@@ -28,11 +28,7 @@ function MessageBoard() {
     })
     if (r.ok) {
       setState('ok')
-      setTip(
-        r.fallback
-          ? '已打开你的邮件客户端，点「发送」即可送达'
-          : `留言已送达，感谢！${r.replied ? '也给你回了一封确认信。' : ''}`,
-      )
+      setTip(r.fallback ? '已打开你的邮件客户端，点「发送」即可送达' : '留言已送达，感谢！')
       setForm({ name: '', msg: '', contact: '', website: '' })
     } else {
       setState('error')

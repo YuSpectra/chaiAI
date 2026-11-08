@@ -139,7 +139,7 @@ node scripts/gen-rss.mjs --base https://chai.aibay.asia   # 自定义域名解�
 
 | 入口 | 读者怎么用 | 落到哪 |
 |---|---|---|
-| A. 站内留言板（页面唯一入口） | `connect.html` 首屏的「写一封信给我」，填称呼 / 想说的话 / 联系邮箱（选填） | FormSubmit 转发到 QQ 邮箱 |
+| A. 站内留言板（页面唯一入口） | `connect.html` 首屏的「写一封信给我」，填称呼 / 想说的话 / 是否愿意公开 / 联系邮箱（全部选填） | FormSubmit 转发到 QQ 邮箱 |
 | B. 直接写信（后台通道，页面不展示地址） | 写信到 `1414330095@qq.com`，**主题带「读者来信」** | QQ 邮箱收件箱 |
 
 完整链路：
@@ -150,13 +150,32 @@ node scripts/gen-rss.mjs --base https://chai.aibay.asia   # 自定义域名解�
               .github/workflows/mail-autoreply.yml（每 5 分钟）
                                               ▼
                         tools/autoreply/reply.py
-                  认出访客 → 生成确认信 → QQ SMTP 发出
-                                → 原信复制到 ChaiReplied 文件夹（去重记号）
+                  认出访客 → 生成确认信（含「是否愿意公开」的说明）
+                          → QQ SMTP 发出
+                          → 原信复制到 ChaiReplied 文件夹（去重记号）
 ```
 
-脚本里几条硬规则（改文案就改 `tools/autoreply/reply.py` 顶部的 `KIND_TEXT`）：
+### 「是否愿意公开」与来信的去向
 
-- 只认两类信：发件人含 `formsubmit.co`，或主题含「读者来信 / 观子喻知 / yuspectra」。
+留言板会问留言者愿不愿意把问题和反馈整理成笔记放在网站上：
+
+- **选「愿意」且留了邮箱**：自动回信里会写明「会整理成匿名回信笔记放进读者来信栏目，发布前先回给你看」。之后由站长润色（去掉个人信息、过滤不合适的内容），用脚本追加到网站：
+
+  ```bash
+  # 1. 参照 scripts/letter.example.json 写一份 来信.json（正文是 HTML 字符串数组）
+  # 2. 追加进 data.js 的 LETTERS 并重新生成 RSS
+  node scripts/add-letter.mjs 来信.json
+  # 3. 提交部署后，letters.html 与 rss.xml 自动出现这封回信
+  ```
+
+  **不会自动发布到网站**——来信内容可能涉及隐私或恶意内容，必须经过人工润色斟酌才能上站。
+
+- **选「不愿意」**：自动回信里会写明「内容只留在私人记录里，不会出现在网站上」。站长把内容整理到自己的 ima 知识库作私人存档即可（ima 没有公开 API，这一步是手动整理），网站不更新。
+- **没选**：回信中不提公开的事，默认不公开。
+
+脚本里几条硬规则（改文案就改 `tools/autoreply/reply.py` 顶部的 `KIND_TEXT` / `SHARE_NOTES`）：
+
+- 只认两类信：发件人含 `formsubmit.co`，或主题含「读者来信」；系统通知类发件人（GitHub、QQ 团队等）一律忽略。
 - 访客邮箱优先级：表单「联系方式」→ `Reply-To` → 正文里第一个邮箱；自动排除站长本人、`formsubmit.co`、`no-reply`、`mailer-daemon`，避免回信死循环。
 - 去重靠「复制到 `ChaiReplied` 文件夹」+ `Message-ID`，**不看已读状态**（QQ 客户端同步会自动标已读，用已读判断会漏回）。
 - 先发信成功再写记号，发信失败下一轮重试；单轮最多 20 封。

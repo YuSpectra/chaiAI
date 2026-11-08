@@ -70,7 +70,6 @@ SYSTEM_DOMAINS = ("github.com", "githubusercontent.com", "formsubmit.co")
 SITE_URL = "https://yuspectra.github.io/chaiAI/"
 SIGN_NAME = "观子喻知 YuSpectra"
 SIGN_PERSON = "子喻"
-SIGN_TITLE = "【观子喻知】的主理人。向外体察，读懂万象，启思创造，拥抱探索。"
 ACCENT = "#1c6b64"
 
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
@@ -97,6 +96,16 @@ DEFAULT_KIND_TEXT = {
     "subject": "已收到你的来信",
     "lead": "谢谢你联系观子喻知，来信已经收到。",
     "next": "我通常会在 24 小时内回到你的邮箱。",
+}
+
+# 留言者选择的「是否愿意公开」决定回信里追加的说明
+SHARE_NOTES = {
+    "愿意": (
+        "另外，谢谢你愿意把这次的问题公开。我会把它整理成一篇匿名回信笔记，放进网站的"
+        "「读者来信」栏目——只会出现问题的转述，不会出现你的任何信息。整理好之后会先回给你看，"
+        "你确认之后才发布。"
+    ),
+    "不愿意": "另外，放心：你写的内容只会留在我的私人记录里，不会出现在网站上。",
 }
 
 
@@ -266,11 +275,13 @@ def prune_dedupe_folder(conn) -> None:
 # ---------------------------------------------------------------- 回信内容
 
 
-def reply_text(name: str, copy: dict, quoted: list) -> tuple[str, str]:
+def reply_text(name: str, copy: dict, quoted: list, share_note: str = "") -> tuple[str, str]:
     hello = f"{name}，你好：" if name else "你好："
-    lines = [hello, "", copy["lead"], copy["next"], ""]
-    lines += ["这封信可以直接回复，我会收到。", ""]
-    lines += [f"我是{SIGN_PERSON}，{SIGN_TITLE}", SITE_URL, ""]
+    lines = [hello, "", copy["lead"], copy["next"]]
+    if share_note:
+        lines.append(share_note)
+    lines += ["", "这封信可以直接回复，我会收到。", ""]
+    lines += [f"—— {SIGN_PERSON}", SITE_URL, ""]
     if quoted:
         lines += ["-" * 46, "你提交的内容（系统自动留档，无需回复本信）："]
         lines += [f"  {label}：{value}" for label, value in quoted]
@@ -293,6 +304,11 @@ def reply_text(name: str, copy: dict, quoted: list) -> tuple[str, str]:
         f'{rows}</table></div>'
     ) if quoted else ""
 
+    share_html = (
+        f'<p style="font-size:14px;line-height:1.8;color:#3b4657;margin:0 0 10px">'
+        f'{html.escape(share_note)}</p>'
+    ) if share_note else ""
+
     html_body = f"""<!doctype html>
 <html lang="zh-CN"><body style="margin:0;padding:0;background:#f5f6f8">
 <div style="max-width:600px;margin:0 auto;padding:32px 20px;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
@@ -302,11 +318,12 @@ def reply_text(name: str, copy: dict, quoted: list) -> tuple[str, str]:
     <p style="font-size:14px;line-height:1.8;color:#1c2431;margin:0 0 12px">{html.escape(hello)}</p>
     <p style="font-size:14px;line-height:1.8;color:#3b4657;margin:0 0 10px">{html.escape(copy["lead"])}</p>
     <p style="font-size:14px;line-height:1.8;color:#3b4657;margin:0 0 20px">{html.escape(copy["next"])}</p>
+    {share_html}
     <p style="font-size:14px;line-height:1.8;color:#3b4657;margin:0 0 24px;padding-left:12px;border-left:2px solid {ACCENT}">
       这封信可以直接回复，我会收到。
     </p>
     {table}
-    <p style="font-size:14px;line-height:1.9;color:#1c2431;margin:0 0 6px">我是{SIGN_PERSON}，{SIGN_TITLE}</p>
+    <p style="font-size:14px;line-height:1.8;color:#1c2431;margin:0 0 2px">—— {SIGN_PERSON}</p>
     <p style="font-size:13px;margin:0 0 22px"><a href="{SITE_URL}" style="color:{ACCENT};text-decoration:none">{SITE_URL}</a></p>
     <div style="border-top:1px solid #e5e8ed;padding-top:14px;font-size:12px;color:#9aa2ae;line-height:1.7">
       这封信自动发出，直接回复即可联系到我。
@@ -321,12 +338,14 @@ def build_reply(to_addr: str, kind: str, fields: dict, orig, orig_subject: str, 
     copy = KIND_TEXT.get(kind, DEFAULT_KIND_TEXT)
     orig_subject = clean_header(orig_subject)
     name = clean_header(name)
+    share_choice = (fields.get("是否愿意公开") or "").strip()
+    share_note = SHARE_NOTES.get(share_choice, "")
     quoted = [
         (label, fields.get(label, ""))
-        for label in ("留言内容", "主体", "背景", "诉求")
+        for label in ("留言内容", "是否愿意公开", "主体", "背景", "诉求")
         if fields.get(label) and not fields.get(label, "").startswith("（未填")
     ]
-    text, html_body = reply_text(name, copy, quoted)
+    text, html_body = reply_text(name, copy, quoted, share_note)
 
     msg = EmailMessage()
     msg["From"] = formataddr((f"{SIGN_NAME} · {SIGN_PERSON}", QQ_USER))

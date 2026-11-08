@@ -9,6 +9,7 @@
   var NOTES = window.NOTES || [];
   var VIDEOS = window.VIDEOS || [];
   var IMAGES = window.IMAGES || [];
+  var LETTERS = window.LETTERS || [];
   var TAGS = window.TAGS || [];
   var KEYWORDS = window.KEYWORDS || [];
   var TICKER = window.TICKER || [];
@@ -171,6 +172,23 @@
         '<h3>' + esc(n.title) + '</h3><p>' + esc(n.excerpt) + '</p>' +
         '<div class="note-card__foot"><span>阅读全文 →</span><span class="tag-row">' + n.tags.slice(0, 2).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</span></div>' +
       '</div></a>';
+  }
+
+  function letterItem(l, i) {
+    return '<article class="glass letter-item reveal" id="' + esc(l.slug) + '">' +
+      '<div class="letter-item__head">' +
+        '<span class="letter-item__no">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
+        '<div class="letter-item__main">' +
+          '<div class="note-card__meta"><span>来信 · ' + esc(l.from) + '</span><i class="dot"></i><span>' + dateLabel(l.date) + '</span><i class="dot"></i><span>读完约 ' + esc(l.readTime) + '</span></div>' +
+          '<h2 class="letter-item__title">' + esc(l.title) + '</h2>' +
+          '<blockquote class="letter-item__q">' + esc(l.question) + '</blockquote>' +
+          '<details class="letter-item__more">' +
+            '<summary><span>展开回信</span></summary>' +
+            '<div class="prose">' + l.body.join('') + '</div>' +
+            '<p class="letter-item__sign">—— ' + esc(S.profile.displayName) + ' · 回于 ' + dateLabel(l.date) + '</p>' +
+          '</details>' +
+        '</div>' +
+      '</div></article>';
   }
 
   function videoCard(v, big) {
@@ -460,13 +478,18 @@
   pages.letters = function () {
     var host = $('#letters-list');
     if (!host) return;
-    /* 只陈列笔记，不展示来信原文、来信人与回信展开 */
-    var list = NOTES.filter(function (n) {
-      return n.category === '读者来信' || (n.tags || []).indexOf('读者来信') > -1;
-    }).sort(function (a, b) { return b.date.localeCompare(a.date); });
-    host.innerHTML = '<div class="card-grid">' + list.map(noteCard).join('') + '</div>';
+    var list = LETTERS.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+    host.innerHTML = list.map(letterItem).join('');
     var empty = $('#letters-empty');
     if (empty) empty.hidden = list.length > 0;
+    /* 带 #slug 打开时自动展开这一封，便于分享单封回信 */
+    var hash = window.location.hash.replace('#', '');
+    var target = hash && hash !== 'letter' ? document.getElementById(hash) : null;
+    if (target) {
+      var more = target.querySelector('details');
+      if (more) more.open = true;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   pages.videos = function () {
@@ -618,13 +641,15 @@
         .map(function (n) { return { title: n.title, desc: n.category + ' · ' + dateLabel(n.date) + ' · ' + n.excerpt, img: n.cover, href: noteHref(n) }; });
       var videos = VIDEOS.filter(function (v) { return match(q, [v.title, v.intro, v.platform]); })
         .map(function (v) { return { title: v.title, desc: v.platform + ' · ' + v.duration, img: v.cover, href: videoHref(v) }; });
+      var letters = LETTERS.filter(function (l) { return match(q, [l.title, l.question, l.excerpt, l.from, l.tags.join(' '), l.body.join('')]); })
+        .map(function (l) { return { title: l.title, desc: '读者来信 · ' + dateLabel(l.date) + ' · ' + l.excerpt, img: 'assets/img/og-cover.svg', href: 'letters.html' }; });
       var images = IMAGES.filter(function (im, i) { return match(q, [im.title, im.desc, im.tags.join(' ')]); })
         .map(function (im, i) { return { title: im.title, desc: im.desc, img: im.src, href: 'gallery.html' }; });
       var tags = TAGS.filter(function (t) { return match(q, [t]); })
         .map(function (t) { return { title: '#' + t, desc: '标签 · 查看相关内容', img: IMAGES[0].src, href: 'notes.html?tag=' + encodeURIComponent(t) }; });
       var total = notes.length + letters.length + videos.length + images.length + tags.length;
       host.innerHTML = '<p class="result-count">「' + esc(q) + '」共找到 ' + total + ' 条结果</p>' +
-        (total ? group('观测笔记', notes) + group('视频', videos) + group('影像', images) + group('标签', tags)
+        (total ? group('观测笔记', notes) + group('读者来信', letters) + group('视频', videos) + group('影像', images) + group('标签', tags)
                : '<div class="empty-state"><h3>没有找到相关内容</h3><p>换个关键词试试，或去 <a class="text-link" href="notes.html">观测笔记</a> 逛逛。</p></div>');
     }
     if (input) {

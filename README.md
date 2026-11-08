@@ -10,7 +10,7 @@
 > **当前为演示状态**（按需求保留，暂不接真实资源）：
 > - **二维码是虚拟的**：外观为二维码点阵，但图上与卡片上都标注了「DEMO · 虚拟 / 暂不可扫码」，不会被误扫。
 > - **外链指向本站**：公众号 / 视频号相关的按钮与链接不再指向假的微信域名，统一指向本站页面（`index.html`、`notes.html`、`videos.html`），用相对路径，本地和线上都能直接点开。
-> - **自我介绍 = 关于我们**：关于页只用「关于我们」的中英文文案，不编造署名、身份、城市或邮箱；文章作者署名使用品牌名。
+> - **自我介绍 = 关于我们**：关于页只用「关于我们」的中英文文案，不编造身份、城市；文章作者署名为 **子喻**，连接页与页脚提供真实邮箱 **1414330095@qq.com**（`SITE.contact`）。
 
 本目录按新品牌方案重建，用于替换你原来的 `YuSpectra/chaiAI` 仓库（原仓库是 Vite + React 的「拆AI 工作坊课程阵地」，品牌与定位完全不同）。原仓库在本次环境中因网络返回空响应无法 `git clone`，因此这里是一份可以直接推上去的完整新站点，不含旧项目文件。
 
@@ -27,7 +27,7 @@ chaiAI/
 ├── video.html          视频详情（?slug=，占位播放器 + VideoObject 结构化数据）
 ├── gallery.html        影像画廊（瀑布流 + 灯箱）
 ├── about.html          关于（关于我们中英文 + 内容方向 + 定位 + 四关键词）
-├── connect.html        连接（公众号 / 视频号虚拟二维码 + 指向本站的演示外链）
+├── connect.html        连接（子喻的邮箱卡 + 公众号 / 视频号虚拟二维码 + 指向本站的演示外链）
 ├── tags.html           标签索引
 ├── search.html         全站搜索（实时检索笔记 / 视频 / 影像 / 标签）
 ├── 404.html            404 页
@@ -35,9 +35,9 @@ chaiAI/
 │   ├── css/style.css   全站设计系统（:root 颜色变量、白底卡片、轻动效、响应式、reduced-motion）
 │   ├── js/data.js      ★ 唯一内容源：品牌文案、自我介绍、6 篇文章、4 个视频、8 张图片、标签、外链
 │   ├── js/site.js      导航 / 页脚 / 搜索 / 筛选 / 灯箱 / 复制链接 / 回到顶部 / 结构化数据
-│   └── img/            22 张浅色简约占位 SVG（封面、图片、虚拟二维码、favicon、OG 图）
+│   └── img/            18 张真实封面 / 影像照片（JPG）+ 虚拟二维码、favicon、OG 图（SVG）
 ├── scripts/
-│   └── gen-placeholders.mjs   重新生成占位图：node scripts/gen-placeholders.mjs
+│   └── gen-placeholders.mjs   重新生成虚拟二维码 / OG 图 / favicon（不再生成封面占位图）
 ├── sitemap.xml         站点地图（含 6 篇文章 + 4 个视频详情）
 ├── rss.xml             RSS 2.0 占位订阅源
 └── robots.txt
@@ -75,17 +75,19 @@ npx serve .
 | 想改什么 | 改哪里 |
 |---|---|
 | 品牌名 / 中英 Slogan / 关于我们文案 | `SITE.brandZh`、`brandEn`、`sloganZh`、`sloganEn`、`aboutZh`、`aboutEn` |
-| **自我介绍 / 关于我们**（中英文共用一份文案） | 文件顶部的 `ABOUT_ZH` / `ABOUT_EN`；`SITE.profile` 的 `intro` / `introEn` 直接引用它们，`displayName` 为品牌署名，`focus` 为内容方向 |
+| **自我介绍 / 关于我们**（中英文共用一份文案） | 文件顶部的 `ABOUT_ZH` / `ABOUT_EN`；`SITE.profile` 的 `intro` / `introEn` 直接引用它们，`displayName` 为署名（子喻），`focus` 为内容方向 |
+| **联系方式（连接我）** | `SITE.contact`：`name`、`email`、`note`；连接页与首页连接区的邮箱卡、页脚「邮箱」都读这里 |
 | 文章（标题、摘要、封面、标签、日期、阅读时间、正文） | `NOTES` 数组；正文写在 `body`（HTML 字符串数组，支持 `<h2>/<p>/<blockquote>/<ul>`） |
 | 视频（标题、封面、平台、时长、简介、链接） | `VIDEOS` 数组；`featured: true` 的视频在首页显示为大卡 |
-| 图片（标题、路径、标签、日期、简介） | `IMAGES` 数组；`ratio` 仅用于占位图生成，真实图片任意尺寸都可以 |
+| 图片（标题、路径、标签、日期、简介） | `IMAGES` 数组；`ratio` 只影响占位图时代的比例，现在是真实照片，建议 tall≈2:3、wide≈3:2、square≈1:1 |
 | 标签、内容标签词条、四关键词、导航 | `TAGS`、`TICKER`、`KEYWORDS`、`NAV` |
 | 页脚社交链接、版权文案 | `SITE.social`、`SITE.copyright` |
 
 新增内容时，记得同步更新 `sitemap.xml` 和 `rss.xml`（它们是静态文件，不会自动更新）。
 
-**替换图片**：最简单的方式是**同名覆盖** `assets/img/` 里的文件，例如把真实封面存成 `note-01.svg`→改成 `note-01.jpg` 时，需要同步把 `data.js` 中对应的 `cover` 路径改掉。二维码、favicon、OG 图同理。
-想重新生成一批占位图：`node scripts/gen-placeholders.mjs`（会覆盖 `assets/img/` 下的占位 SVG，请先备份已替换的真实图片）。
+**替换图片**：直接**同名覆盖** `assets/img/` 里的 JPG 即可（`note-01.jpg` … `note-06.jpg`、`video-01.jpg` … `video-04.jpg`、`img-01.jpg` … `img-08.jpg`），不用改代码；如果换了文件名，再改 `data.js` 里对应的 `cover` / `src`。
+
+当前 18 张封面与影像都是**统一风格的真实照片**：浅色、高调、无人物、无文字，主题为书桌/窗光/雨后路面/天际线/干花等风景与抽象画面，和「浅色简约」的站点气质一致。二维码、favicon、OG 图仍由脚本生成：`node scripts/gen-placeholders.mjs`。
 
 ---
 
@@ -101,7 +103,7 @@ npx serve .
 | 4 | **公众号外链 / 文章链接（演示）** | `index.html` / `notes.html`（指向本站） | `data.js` → `wechat.officialUrl`、`officialArticleUrl`；`SITE.social` 里的「公众号」 |
 | 5 | **视频号链接（演示）** | `videos.html`（指向本站） | `data.js` → `wechat.channelUrl`；`SITE.social` 里的「视频号」 |
 | 6 | **视频播放地址** | `REPLACE_VIDEO_URL` ×4 | `data.js` → `VIDEOS[].videoUrl`（填 `.mp4/.webm` 会直接在详情页播放；填平台页面链接则显示「前往平台观看」按钮） |
-| 7 | 文章封面 / 视频封面 / 图片 | `assets/img/*.svg` 占位图 | `data.js` 中每条内容的 `cover` / `src` |
+| 7 | 文章封面 / 视频封面 / 图片 | 18 张浅色真实照片（JPG） | 想换成自己的图：同名覆盖 `assets/img/` 里的文件即可 |
 | 8 | 自我介绍 | 已是「关于我们」中英文正式文案 | `data.js` 顶部 `ABOUT_ZH` / `ABOUT_EN`（改一处，两处同步） |
 | 9 | 二维码 / 演示状态说明文字 | 「虚拟二维码 · 演示用」 | `data.js` → `SITE.wechat.qrHint`、`hint`；连接页与首页 CTA 的静态说明文字 |
 | 10 | RSS / sitemap 里的条目与日期 | 示例文章 | `rss.xml`、`sitemap.xml` |
@@ -120,7 +122,7 @@ npx serve .
 4. 同步把连接页 / 首页 CTA 里「当前为虚拟二维码与演示链接」的静态说明文字改掉（在 `connect.html`、`index.html` 中搜索「演示」即可定位）。
 5. 二维码仍采用「二维码 + 外链卡片」方式，**不依赖任何自动同步接口**；微信内打开体验更佳的提示保留。
 
-重新生成虚拟二维码图：`node scripts/gen-placeholders.mjs`（会覆盖 `assets/img/` 下全部占位 SVG，已替换的真实图片请先备份）。
+重新生成虚拟二维码图：`node scripts/gen-placeholders.mjs`（只覆盖两张虚拟二维码、OG 图与 favicon，不动封面照片）。
 
 ---
 

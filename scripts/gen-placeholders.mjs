@@ -86,17 +86,7 @@ function qr(title, sub, color) {
 }
 
 const files = [];
-for (let i = 1; i <= 6; i++) {
-  files.push([`note-0${i}.svg`, art({ w: 1200, h: 750, seed: 1200 + i * 37, label: `NOTE 0${i}`, sub: '观测笔记 · 示例封面', index: i })]);
-}
-for (let i = 1; i <= 4; i++) {
-  files.push([`video-0${i}.svg`, art({ w: 1280, h: 720, seed: 4200 + i * 53, label: `VIDEO 0${i}`, sub: '视频封面 · 示例', index: i + 2 })]);
-}
-const ratios = { tall: [800, 1100], wide: [1200, 760], square: [900, 900] };
-['tall', 'wide', 'square', 'tall', 'wide', 'square', 'tall', 'wide'].forEach((ratio, i) => {
-  const [w, h] = ratios[ratio];
-  files.push([`img-0${i + 1}.svg`, art({ w, h, seed: 7700 + i * 71, label: `IMAGE 0${i + 1}`, sub: '影像 · 示例', index: i + 1 })]);
-});
+/* 文章 / 视频 / 影像封面现已使用真实图片（assets/img/*.jpg），这里只生成二维码、OG 图与 favicon。 */
 files.push(['qr-official-placeholder.svg', qr('公众号 · 观子喻知（演示）', '虚拟二维码 · 暂不可扫码，上线前替换', '#1c6b64')]);
 files.push(['qr-channel-placeholder.svg', qr('视频号 · 观子喻知（演示）', '虚拟二维码 · 暂不可扫码，上线前替换', '#4a6b8a')]);
 files.push(['og-cover.svg', art({ w: 1200, h: 630, seed: 999, label: 'YUSPECTRA', sub: '观子喻知 · 向外体察，读懂万象，启思创造，拥抱探索', index: 0 })]);

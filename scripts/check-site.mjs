@@ -31,7 +31,7 @@ for (const file of htmlFiles) {
 }
 
 const data = readFileSync(join(root, 'assets/js/data.js'), 'utf8');
-const imgRefs = [...data.matchAll(/'([^']*assets\/img\/[^']+)'/g)].map((m) => m[1]);
+const imgRefs = [...data.matchAll(/'([^'\n]*assets\/img\/[^'\n]+)'/g)].map((m) => m[1]);
 for (const ref of new Set(imgRefs)) {
   if (!existsSync(resolve(root, ref))) errors.push(`data.js: 引用了不存在的图片 ${ref}`);
 }

@@ -29,7 +29,7 @@
   var isExternal = function (u) { return /^https?:\/\//.test(u || ''); };
   // 演示状态下微信外链指向站内相对路径：同窗口打开、箭头用「→」；真实绝对地址才新窗口打开
   var linkAttr = function (u) { return isExternal(u) ? ' ' + extAttr : ''; };
-  var linkArrow = function (u) { return isExternal(u) ? ' ↗' : ' →'; };
+  var linkArrow = function (u) { return /^mailto:/.test(u || '') ? '' : (isExternal(u) ? ' ↗' : ' →'); };
   var absUrl = function (u) { try { return new URL(u, window.location.href).href; } catch (e) { return u; } };
   var isPlaceholder = function (u) { return !u || u.indexOf('REPLACE_') === 0 || u === '#'; };
 
@@ -165,7 +165,7 @@
 
   function noteCard(n) {
     return '<a class="glass note-card reveal" href="' + noteHref(n) + '">' +
-      '<div class="note-card__media"><img src="' + esc(n.cover) + '" alt="' + esc(n.title) + ' 的封面占位图" loading="lazy"></div>' +
+      '<div class="note-card__media"><img src="' + esc(n.cover) + '" alt="' + esc(n.title) + ' 配图" loading="lazy"></div>' +
       '<div class="note-card__body">' +
         '<div class="note-card__meta"><span class="tag tag--cyan">' + esc(n.category) + '</span><span>' + dateLabel(n.date) + '</span><i class="dot"></i><span>' + esc(n.readTime) + '</span></div>' +
         '<h3>' + esc(n.title) + '</h3><p>' + esc(n.excerpt) + '</p>' +
@@ -175,7 +175,7 @@
 
   function videoCard(v, big) {
     return '<a class="video-card ' + (big ? 'video-card--big' : 'video-card--small') + ' reveal" href="' + videoHref(v) + '">' +
-      '<img src="' + esc(v.cover) + '" alt="' + esc(v.title) + ' 的视频封面占位图" loading="lazy">' +
+      '<img src="' + esc(v.cover) + '" alt="' + esc(v.title) + ' 视频封面" loading="lazy">' +
       '<span class="video-card__shade"></span>' +
       '<span class="video-card__play">' + ICON.play + '</span>' +
       '<span class="video-card__info"><h3>' + esc(v.title) + '</h3>' +
@@ -206,6 +206,19 @@
         '<p class="qr-card__hint">' + esc(w.qrHint || w.hint) + '</p>' +
         '<div class="btn-row"><a class="btn btn--primary btn--sm" href="' + esc(link) + '"' + linkAttr(link) + '>' + btn + linkArrow(link) + '</a>' +
         '<button class="btn btn--ghost btn--sm" data-copy="' + esc(absUrl(link)) + '">复制链接</button></div>' +
+      '</div></article>';
+  }
+
+  function contactCard() {
+    var c = S.contact;
+    if (!c || !c.email) return '';
+    return '<article class="glass contact-card reveal">' +
+      '<div class="contact-card__main"><span class="eyebrow">Say hello / 连接我</span>' +
+        '<h3>' + esc(c.name) + '</h3>' +
+        '<p>' + esc(c.note) + '</p></div>' +
+      '<div class="contact-card__actions">' +
+        '<a class="btn btn--primary" href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' +
+        '<button class="btn btn--ghost btn--sm" data-copy="' + esc(c.email) + '">复制邮箱</button>' +
       '</div></article>';
   }
 
@@ -354,6 +367,7 @@
     var gp = $('#gallery-preview'); if (gp) gp.innerHTML = IMAGES.slice(0, 6).map(function (im, i) { return galleryTile(im, i); }).join('');
     var tl = $('#timeline-stream'); if (tl) tl.innerHTML = timeline();
     var cc = $('#connect-cards'); if (cc) cc.innerHTML = qrCard('official') + qrCard('channel');
+    var coc = $('#connect-contact'); if (coc) coc.innerHTML = contactCard();
     var tk = $('#ticker-track');
     if (tk) {
       var group = '<div class="ticker__group">' + TICKER.map(function (t) { return '<span class="ticker__item">' + esc(t) + '</span>'; }).join('') + '</div>';
@@ -430,7 +444,7 @@
         '<div class="note-card__meta" style="margin-top:22px"><span>' + dateLabel(n.date) + '</span><i class="dot"></i><span>阅读约 ' + esc(n.readTime) + '</span><i class="dot"></i><span>' + esc(S.profile.displayName) + '</span></div>' +
         '<div class="tag-row" style="margin-top:16px">' + n.tags.map(function (t) { return '<a class="tag" href="notes.html?tag=' + encodeURIComponent(t) + '">#' + esc(t) + '</a>'; }).join('') + '</div>' +
       '</header>' +
-      '<div class="article-cover reveal"><img src="' + esc(n.cover) + '" alt="' + esc(n.title) + ' 的封面占位图"></div>' +
+      '<div class="article-cover reveal"><img src="' + esc(n.cover) + '" alt="' + esc(n.title) + ' 配图"></div>' +
       '<article class="prose reveal">' + n.body.join('') + '</article>' +
       '<div class="article-foot"><div class="tag-row">' + n.tags.map(function (t) { return '<a class="tag" href="tags.html">#' + esc(t) + '</a>'; }).join('') + '</div>' +
         '<div class="share-row"><span style="color:var(--muted);font-size:13px">分享</span>' +
@@ -470,7 +484,7 @@
     var isFile = real && /\.(mp4|webm|ogg)(\?|$)/i.test(v.videoUrl);
     var player = isFile
       ? '<video class="player" controls poster="' + esc(v.cover) + '"><source src="' + esc(v.videoUrl) + '">你的浏览器不支持视频播放。</video>'
-      : '<div class="player"><img src="' + esc(v.cover) + '" alt="' + esc(v.title) + ' 封面占位图"><div class="player__inner"><div class="play-big">' + ICON.play + '</div><h2 style="font-size:20px;margin:0">视频链接待接入</h2><p>当前为占位封面。替换 data.js 中该视频的 videoUrl 后即可播放或跳转。</p>' +
+      : '<div class="player"><img src="' + esc(v.cover) + '" alt="' + esc(v.title) + ' 视频封面"><div class="player__inner"><div class="play-big">' + ICON.play + '</div><h2 style="font-size:20px;margin:0">视频链接待接入</h2><p>先看封面。替换 data.js 中该视频的 videoUrl 后即可播放或跳转。</p>' +
         (real ? '<a class="btn btn--primary btn--sm" style="margin-top:18px" href="' + esc(v.videoUrl) + '" ' + extAttr + '>前往' + esc(v.platform) + '观看 ↗</a>' : '<a class="btn btn--primary btn--sm" style="margin-top:18px" href="' + esc(S.wechat.channelUrl) + '"' + linkAttr(S.wechat.channelUrl) + '>' + (isExternal(S.wechat.channelUrl) ? '前往视频号' : '浏览本站视频') + linkArrow(S.wechat.channelUrl) + '</a>') +
         '</div></div>';
     var related = VIDEOS.filter(function (x) { return x !== v; });
@@ -506,7 +520,7 @@
           '<div class="focus-list">' + p.focus.map(function (f) { return '<div class="focus-item">' + esc(f) + '</div>'; }).join('') + '</div>' +
         '</article>' +
         '<aside class="glass about-card reveal"><span class="eyebrow">Positioning / 定位</span><h2>一个持续更新的个人内容品牌</h2>' +
-          '<p>' + esc(S.brandZh) + ' ' + esc(S.brandEn) + ' 用来安放 AI 生成或原创的文章、读书笔记、视频、图片与视觉实验，同时连接微信公众号与视频号。</p>' +
+          '<p>' + esc(S.brandZh) + ' ' + esc(S.brandEn) + ' 用来安放文章、读书笔记、视频、图片与视觉实验，同时连接微信公众号与视频号。</p>' +
           '<p>气质是年轻、好奇、有创造力、有探索感；呈现上追求简洁、清晰与留白，始终把阅读体验放在第一位。</p>' +
           '<a class="btn btn--primary btn--sm" href="connect.html">连接我 →</a>' +
         '</aside>' +
@@ -519,6 +533,7 @@
   pages.connect = function () {
     var cc = $('#connect-cards');
     if (cc) cc.innerHTML = qrCard('official') + qrCard('channel');
+    var coc = $('#connect-contact'); if (coc) coc.innerHTML = contactCard();
     var links = $('#connect-links');
     var w = S.wechat;
     if (links) links.innerHTML =

@@ -583,6 +583,22 @@
     var form = $('#letter-form');
     if (!form) return;
     var val = function (sel) { var el = $(sel); return el ? el.value.trim() : ''; };
+
+    /* 公开意愿只在读者留了完整邮箱后出现；没留邮箱时该字段禁用、不参与提交 */
+    var email = $('#lf-email');
+    var shareField = $('#lf-share-field');
+    var share = $('#lf-share');
+    if (email && shareField && share) {
+      var syncShare = function () {
+        var v = email.value.trim();
+        var ok = !email.disabled && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        shareField.hidden = !ok;
+        share.disabled = !ok;
+      };
+      ['input', 'change', 'blur'].forEach(function (evt) { email.addEventListener(evt, syncShare); });
+      syncShare();
+    }
+
     form.addEventListener('submit', function (e) {
       if (val('#lf-name') || val('#lf-msg') || val('#lf-email')) return;
       e.preventDefault();

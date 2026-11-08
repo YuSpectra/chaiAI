@@ -57,18 +57,17 @@
             </div>
 
             <div class="field">
-              <label for="lf-share">愿意整理成笔记吗 <span class="field__hint">选填</span></label>
-              <select id="lf-share" name="是否愿意公开">
-                <option value="">还没想好，先不用管这条</option>
-                <option value="愿意">愿意 —— 匿名整理后放进「读者来信」，让有同样困惑的人被看见</option>
-                <option value="不愿意">不愿意 —— 只留给我自己看，不会放上网站</option>
-              </select>
-              <p class="field__note">选「愿意」的话，内容会以匿名笔记的形式出现在网站的读者来信栏目，只会出现问题的转述，不会出现你的任何信息。</p>
-            </div>
-
-            <div class="field">
               <label for="lf-email">联系邮箱 <span class="field__hint">如想收到回信，请留一个</span></label>
               <input id="lf-email" name="联系方式" type="email" maxlength="120" placeholder="选填，不会公开">
+            </div>
+
+            <div class="field field--reveal" id="lf-share-field" hidden>
+              <label for="lf-share">愿意整理成笔记吗 <span class="field__hint">选填</span></label>
+              <select id="lf-share" name="是否愿意公开" disabled>
+                <option value="">还没想好，先不用管这条</option>
+                <option value="愿意" selected>愿意 —— 匿名整理后放进「读者来信」，让更多同频的人看见</option>
+                <option value="不愿意">不愿意 —— 只留给我自己看，不会放上网站</option>
+              </select>
             </div>
 
             <button class="btn btn--primary letter__submit" type="submit">寄出这封信</button>

@@ -6,8 +6,24 @@
     <link>https://yuspectra.github.io/chaiAI/</link>
     <description>欢迎来到【观子喻知】。向外体察，读懂万象，启思创造，拥抱探索。内容持续更新，邀你一同探寻。</description>
     <language>zh-CN</language>
-    <lastBuildDate>Sun, 08 Nov 2026 17:47:06 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 08 Nov 2026 21:47:00 +0800</lastBuildDate>
     <atom:link href="https://yuspectra.github.io/chaiAI/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>[读者来信] 龙场悟道，给 AI 焦虑时代的三样东西</title>
+      <link>https://yuspectra.github.io/chaiAI/letters.html#longchang-ai-anxiety</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/letters.html#longchang-ai-anxiety</guid>
+      <pubDate>Sun, 08 Nov 2026 09:00:00 +0800</pubDate>
+      <category>读者来信</category>
+      <description>有人问：AI 越来越快，怕跟不上、怕被替代，龙场悟道里有什么能用的？把它拆开看，能带走的是三样东西。</description>
+    </item>
+    <item>
+      <title>[读者来信] 龙场悟道，可以分三层来读</title>
+      <link>https://yuspectra.github.io/chaiAI/letters.html#longchang-three-layers</link>
+      <guid isPermaLink="true">https://yuspectra.github.io/chaiAI/letters.html#longchang-three-layers</guid>
+      <pubDate>Fri, 06 Nov 2026 09:00:00 +0800</pubDate>
+      <category>读者来信</category>
+      <description>同一段故事，从绝境、从「心即理」、从普通人的用法三个层次看，读出来的东西完全不同。</description>
+    </item>
     <item>
       <title>[视频] 给一段旧影像上色</title>
       <link>https://yuspectra.github.io/chaiAI/video.html?slug=colorize-old-footage</link>

@@ -4,6 +4,7 @@
   <url><loc>https://chai.aibay.asia/index.html</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://chai.aibay.asia/notes.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://chai.aibay.asia/videos.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chai.aibay.asia/letters.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://chai.aibay.asia/gallery.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://chai.aibay.asia/about.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://chai.aibay.asia/connect.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>

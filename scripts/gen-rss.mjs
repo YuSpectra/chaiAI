@@ -20,6 +20,7 @@ new Function('window', src)(sandbox.window);
 const SITE = sandbox.window.SITE;
 const NOTES = sandbox.window.NOTES || [];
 const VIDEOS = sandbox.window.VIDEOS || [];
+const LETTERS = sandbox.window.LETTERS || [];
 
 function escXml(s) {
   return String(s)
@@ -66,6 +67,20 @@ for (const v of VIDEOS) {
     '      <pubDate>' + pubDate(v.date) + '</pubDate>\n' +
     '      <category>视频</category>\n' +
     '      <description>' + escXml(v.intro || '') + '</description>\n' +
+    '    </item>'
+  );
+}
+
+for (const l of LETTERS) {
+  const url = BASE + '/letters.html#' + l.slug;
+  items.push(
+    '    <item>\n' +
+    '      <title>' + escXml('[读者来信] ' + l.title) + '</title>\n' +
+    '      <link>' + escXml(url) + '</link>\n' +
+    '      <guid isPermaLink="true">' + escXml(url) + '</guid>\n' +
+    '      <pubDate>' + pubDate(l.date) + '</pubDate>\n' +
+    '      <category>读者来信</category>\n' +
+    '      <description>' + escXml(l.excerpt || l.question || '') + '</description>\n' +
     '    </item>'
   );
 }

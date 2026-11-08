@@ -17,6 +17,13 @@
   * 先发信成功、再写记号；发信失败不写，下一轮自动重试。
   * 绝不回给站长自己、formsubmit.co、no-reply / mailer-daemon（防回路）。
   * 单轮最多回 MAX_PER_RUN 封，防止被刷。
+  * 除 Message-ID 外，再加一层「内容 + 时间窗」去重：十几秒内连点两次
+    提交、内容完全相同的信只回一封，重复的那封只写记号不回信。
+
+两个入口：
+    python reply.py                       定时扫信 + 自动回信（Actions 用这个）
+    python reply.py --export-drafts      把「愿意公开」的来信导出成脱敏草稿
+                                        （不再把原文打进 Actions 日志）
 
 环境变量：
     QQ_USER          必填，QQ 邮箱地址
@@ -26,6 +33,8 @@
     SMTP_HOST        选填，默认 smtp.qq.com
     MAX_PER_RUN      选填，单轮最多回几封，默认 20
     LOOKBACK_DAYS    选填，往回扫几天，默认 14
+    DEDUP_WINDOW_MIN 选填，内容去重的时间窗（分钟），默认 15
+    DRAFTS_DIR       选填，草稿输出目录，默认 tools/autoreply/drafts
     TEST_TO_OVERRIDE 选填，测试用：所有回信改投这个地址
     DRY_RUN          选填，设为 1 则只打印不发送、不写记号
 """
@@ -34,8 +43,10 @@ from __future__ import annotations
 
 import datetime as dt
 import email
+import hashlib
 import html
 import imaplib
+import json
 import os
 import re
 import smtplib
@@ -43,7 +54,7 @@ import ssl
 import sys
 from email.header import decode_header, make_header
 from email.message import EmailMessage
-from email.utils import formataddr, formatdate, make_msgid, parseaddr
+from email.utils import formataddr, formatdate, make_msgid, parseaddr, parsedate_to_datetime
 
 IMAP_HOST = os.environ.get("IMAP_HOST", "imap.qq.com")
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.qq.com")
@@ -54,6 +65,8 @@ MAX_PER_RUN = int(os.environ.get("MAX_PER_RUN") or 20)
 LOOKBACK_DAYS = int(os.environ.get("LOOKBACK_DAYS") or 14)
 TEST_TO = (os.environ.get("TEST_TO_OVERRIDE") or "").strip()
 DRY_RUN = os.environ.get("DRY_RUN") == "1"
+DEDUP_WINDOW_MIN = int(os.environ.get("DEDUP_WINDOW_MIN") or 15)
+DRAFTS_DIR = os.environ.get("DRAFTS_DIR") or "tools/autoreply/drafts"
 
 FORM_SUBMIT_FROM = "formsubmit.co"
 DEDUPE_FOLDER = "ChaiReplied"          # 沿用旧文件夹名，历史记号继续有效
@@ -131,6 +144,33 @@ def cell_text(raw: str) -> str:
 def clean_header(value: str) -> str:
     """邮件头不能含换行：折行的主题解码后可能带 \\r\\n，必须压成单行。"""
     return re.sub(r"\s+", " ", (value or "")).strip()
+
+
+def mail_date(msg):
+    """邮件 Date 头 -> 带时区的 datetime；解析不出来返回 None。"""
+    try:
+        when = parsedate_to_datetime(msg.get("Date"))
+        if when is None:
+            return None
+        return when if when.tzinfo else when.replace(tzinfo=dt.timezone.utc)
+    except Exception:
+        return None
+
+
+def content_fingerprint(kind: str, fields: dict, visitor: str) -> str:
+    """内容指纹：只取读者填的内容与回信对象，不含邮箱等系统字段。
+
+    用来识别「几秒内连点两次提交」这类重复来信；同一读者换了邮箱不算重复。
+    """
+    parts = [kind or "", (visitor or "").strip().lower()]
+    for key in ("称呼", "留言内容", "主体", "背景", "诉求", "是否愿意公开"):
+        parts.append(re.sub(r"\s+", "", str(fields.get(key) or "")))
+    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
+
+
+def scrub_text(text: str) -> str:
+    """草稿脱敏：抹掉正文里可能夹带的邮箱地址。"""
+    return re.sub(r"[ \t]+", " ", EMAIL_RE.sub("[邮箱已省略]", text or "")).strip()
 
 
 def is_system_sender(addr: str) -> bool:
@@ -403,6 +443,11 @@ def main() -> int:
     replied_ids = load_replied_ids(conn)
     print(f"记号文件夹已有 {len(replied_ids)} 条回信记录")
 
+    # 第二层去重：时间窗内「内容完全相同」的来信只回第一封
+    recent = {}                       # 内容指纹 -> 最近一次处理时间
+    window_sec = max(1, DEDUP_WINDOW_MIN) * 60
+    now_utc = dt.datetime.now(dt.timezone.utc)
+
     typ, _ = conn.select("INBOX")
     if typ != "OK":
         print("[error] 打不开收件箱")
@@ -421,7 +466,7 @@ def main() -> int:
         # 第一步：只取邮件头，便宜地筛掉大部分无关邮件
         typ, heads = conn.uid(
             "FETCH", uid,
-            "(BODY.PEEK[HEADER.FIELDS (FROM SUBJECT MESSAGE-ID AUTO-SUBMITTED X-YU-AUTOREPLY REPLY-TO)])",
+            "(BODY.PEEK[HEADER.FIELDS (FROM SUBJECT MESSAGE-ID DATE AUTO-SUBMITTED X-YU-AUTOREPLY REPLY-TO)])",
         )
         if typ != "OK" or not heads or not isinstance(heads[0], tuple):
             continue
@@ -429,6 +474,15 @@ def main() -> int:
         msg_id = (head.get("Message-ID") or "").strip().lower()
         if msg_id and msg_id in replied_ids:
             skipped += 1
+            # 刚回过、还在时间窗内的信，把内容指纹记下来供本轮去重
+            when_old = mail_date(head)
+            if when_old and abs((now_utc - when_old).total_seconds()) <= window_sec:
+                typ, old_full = conn.uid("FETCH", uid, "(BODY.PEEK[])")
+                if typ == "OK" and old_full and isinstance(old_full[0], tuple):
+                    old_msg = email.message_from_bytes(old_full[0][1])
+                    k0, f0, v0, _ = classify(old_msg)
+                    if v0:
+                        recent[content_fingerprint(k0, f0, v0)] = when_old
             continue
         if head.get("X-Yu-Autoreply") or (head.get("Auto-Submitted") or "").lower() not in ("", "no"):
             skipped += 1
@@ -454,6 +508,20 @@ def main() -> int:
             skipped += 1
             continue
 
+        when = mail_date(head) or now_utc
+        fp = content_fingerprint(kind, fields, visitor)
+        prev = recent.get(fp)
+        if prev is not None and abs((when - prev).total_seconds()) <= window_sec:
+            # 内容 + 时间窗命中：不回第二封，但仍写记号，窗口过期后也不会补发
+            print(f"  跳过重复来信（{DEDUP_WINDOW_MIN} 分钟内内容相同）→ {visitor}")
+            if not DRY_RUN:
+                typ, _ = conn.uid("COPY", uid, DEDUPE_FOLDER)
+                if typ == "OK" and msg_id:
+                    replied_ids.add(msg_id)
+                recent[fp] = when
+            skipped += 1
+            continue
+
         name = (fields.get("称呼") or "").strip()
         to_addr = TEST_TO or visitor
         try:
@@ -475,6 +543,7 @@ def main() -> int:
             continue
 
         replied += 1
+        recent[fp] = when
         typ, _ = conn.uid("COPY", uid, DEDUPE_FOLDER)
         if typ == "OK" and msg_id:
             replied_ids.add(msg_id)
@@ -488,5 +557,105 @@ def main() -> int:
     return 0
 
 
+# ------------------------------------------------------- 导出待公开来信草稿
+
+
+def export_public_drafts(conn, outdir: str, since_days: int = 14) -> int:
+    """把 ChaiReplied 里选了「愿意」的来信导出成脱敏草稿。
+
+    取代「临时往 Actions 日志打原文」的做法：
+      * 只写本地文件，日志只报数量，不打印来信正文；
+      * 草稿不含邮箱、不含称呼，正文里夹带的邮箱也会被抹掉；
+      * 目录带 .gitignore，草稿不会被提交进公开仓库；
+      * 必须人工润色、过滤隐私与冒犯内容后，才用 add-letter.mjs 发布。
+    """
+    os.makedirs(outdir, exist_ok=True)
+    guard = os.path.join(outdir, ".gitignore")
+    if not os.path.exists(guard):
+        with open(guard, "w", encoding="utf-8") as f:
+            f.write("*.json\n")
+
+    typ, _ = conn.select(f'"{DEDUPE_FOLDER}"')
+    if typ != "OK":
+        print("[error] 打不开记号文件夹")
+        return 0
+    since = (dt.date.today() - dt.timedelta(days=since_days)).strftime("%d-%b-%Y")
+    typ, data = conn.uid("SEARCH", None, "SINCE", since)
+    uids = data[0].split() if typ == "OK" and data and data[0] else []
+
+    written = skipped = 0
+    for uid in uids:
+        typ, fetched = conn.uid("FETCH", uid, "(BODY.PEEK[])")
+        if typ != "OK" or not fetched or not isinstance(fetched[0], tuple):
+            continue
+        orig = email.message_from_bytes(fetched[0][1])
+        _, fields, _, _ = classify(orig)
+        if (fields.get("是否愿意公开") or "").strip() != "愿意":
+            continue
+        question = scrub_text(fields.get("留言内容") or fields.get("诉求") or "")
+        if not question:
+            continue
+
+        mid = (orig.get("Message-ID") or "").strip()
+        when = mail_date(orig)
+        day = (when.astimezone(dt.timezone(dt.timedelta(hours=8))).date().isoformat()
+               if when else dt.date.today().isoformat())
+        key = hashlib.sha256((mid or uid.decode()).encode("utf-8")).hexdigest()[:10]
+        path = os.path.join(outdir, "draft-%s-%s.json" % (day, key))
+        if os.path.exists(path):
+            skipped += 1
+            continue
+
+        draft = {
+            "slug": "",
+            "title": "",
+            "date": day,
+            "readTime": "",
+            "excerpt": "",
+            "tags": ["读者来信"],
+            "cover": "assets/img/og-cover.svg",
+            "question": question,
+            "body": [],
+            "note": "草稿仅供人工润色：问题只作转述、先体谅情绪、不出现任何个人信息；确认后再用 scripts/add-letter.mjs 发布。",
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(draft, f, ensure_ascii=False, indent=2)
+        written += 1
+
+    print(f"导出草稿 {written} 份，已存在跳过 {skipped} 份 → {outdir}")
+    return written
+
+
+def export_cli(args: list) -> int:
+    outdir = DRAFTS_DIR
+    i = args.index("--export-drafts")
+    if i + 1 < len(args) and not args[i + 1].startswith("--"):
+        outdir = args[i + 1]
+    since_days = 14
+    if "--since-days" in args:
+        j = args.index("--since-days")
+        if j + 1 < len(args):
+            try:
+                since_days = max(1, int(args[j + 1]))
+            except ValueError:
+                pass
+    if not QQ_USER or not QQ_AUTH_CODE:
+        print("[error] 缺少 QQ_USER / QQ_AUTH_CODE")
+        return 2
+    conn = imap_connect()
+    try:
+        export_public_drafts(conn, outdir, since_days)
+        print("草稿不含邮箱与称呼，目录已 gitignore；请人工润色后再发布。")
+        return 0
+    finally:
+        try:
+            conn.logout()
+        except Exception:
+            pass
+
+
 if __name__ == "__main__":
+    argv = sys.argv[1:]
+    if "--export-drafts" in argv:
+        sys.exit(export_cli(argv))
     sys.exit(main())

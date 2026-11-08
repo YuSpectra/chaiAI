@@ -179,6 +179,7 @@ node scripts/gen-rss.mjs --base https://chai.aibay.asia   # 自定义域名解�
 - 只认两类信：发件人含 `formsubmit.co`，或主题含「读者来信」；系统通知类发件人（GitHub、QQ 团队等）一律忽略。
 - 访客邮箱优先级：表单「联系方式」→ `Reply-To` → 正文里第一个邮箱；自动排除站长本人、`formsubmit.co`、`no-reply`、`mailer-daemon`，避免回信死循环。
 - 去重靠「复制到 `ChaiReplied` 文件夹」+ `Message-ID`，**不看已读状态**（QQ 客户端同步会自动标已读，用已读判断会漏回）。
+- 再加一层**内容 + 时间窗去重**：`DEDUP_WINDOW_MIN`（默认 15 分钟）内，同一读者内容完全相同的重复提交只回第一封；命中重复的那封仍然写记号，所以窗口过期后也不会补发第二封。测试：`python tools/autoreply/test_dedupe.py`。
 - 先发信成功再写记号，发信失败下一轮重试；单轮最多 20 封。
 - 邮件头带 `Auto-Submitted: auto-replied` 与 `X-Yu-Autoreply: 1`，防止两个自动回复互相打乒乓。
 
@@ -189,6 +190,23 @@ node scripts/gen-rss.mjs --base https://chai.aibay.asia   # 自定义域名解�
 ```bash
 QQ_USER=1414330095@qq.com QQ_AUTH_CODE=<授权码> DRY_RUN=1 python tools/autoreply/reply.py
 ```
+
+### 取出「愿意公开」的来信：正式草稿导出
+
+以前为了拿原文，临时往 Actions 日志里打过一次内容。现在改成正式命令，日志只报数量、不打印任何来信正文：
+
+```bash
+QQ_USER=1414330095@qq.com QQ_AUTH_CODE=<授权码> \
+  python tools/autoreply/reply.py --export-drafts
+# 可选：--export-drafts 指定目录 --since-days 30
+```
+
+它会从 `ChaiReplied` 里挑出「愿意整理成笔记」的来信，在 `tools/autoreply/drafts/` 下生成 `draft-日期-序号.json`，作为 `scripts/add-letter.mjs` 的输入模板。几条保护：
+
+- 草稿**不含邮箱、不含称呼**，正文里夹带的邮箱地址也会被抹成 `[邮箱已省略]`；
+- 草稿目录带 `.gitignore`（`*.json`），**不会提交进公开仓库**——原始问题必须先人工润色、过滤隐私与冒犯内容，才走发布流程；
+- 同一封信（按 Message-ID）重复运行不会覆盖已有草稿；
+- 没选「愿意」或没留邮箱的来信不会被导出，仍按原设计进 ima 私人归档。
 
 排障顺序：仓库 Actions 里看 `访客留言自动回信` 最近一次运行日志 → 确认 Secrets `QQ_USER` / `QQ_AUTH_CODE` 仍在 → 确认 FormSubmit 已激活 → 确认仓库 60 天内有过提交（GitHub 会暂停长期无提交仓库的定时任务）。
 

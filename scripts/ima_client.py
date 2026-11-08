@@ -89,7 +89,7 @@ def _post_once(path, body, timeout):
             raise ImaError(f"ima {path} HTTP {e.code}: {raw[:200]}")
 
 
-def post(path, body, timeout=30, retries=4):
+def post(path, body, timeout=30, retries=3):
     """调 openapi；码 200001（请求频率超限）自动指数退避重试——CI 连跑多个环节很容易撞限流。"""
     delay = 5
     for attempt in range(retries):
@@ -150,7 +150,7 @@ def ensure_folder(kb, name):
     return fid
 
 
-def _cos_put(cred, data, content_type, timeout=120):
+def _cos_put(cred, data, content_type, timeout=45):
     host = f"{cred['bucket_name']}.cos.{cred['region']}.myqcloud.com"
     pathname = "/" + str(cred["cos_key"]).lstrip("/")
     key_time = f"{cred['start_time']};{cred['expired_time']}"

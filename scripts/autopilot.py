@@ -34,6 +34,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import ima_client
 
 KB_DIR = {"feedback": ima_client.DIR_FEEDBACK, "radar": ima_client.DIR_RADAR, "weekly": ima_client.DIR_WEEKLY}
+DEADLINE = None  # main() 里设为 12 分钟全局预算；各环节入库前自查
 
 def _docs(name):
     """docs/ 不存在就建（fork 站常无 docs/，否则写报告直接 ENOENT 断掉整个 beat）。"""
@@ -106,6 +107,9 @@ def beat_feedback():
     folder = ima_client.ensure_folder(kb, KB_DIR["feedback"])
     n = 0
     for i, msg in enumerate(msgs):
+        if DEADLINE and time.time() > DEADLINE:
+            print(f"  反馈入库到 {n}/{len(msgs)} 触达时间预算，剩余跳过（心跳优先）", file=sys.stderr)
+            break
         if i:
             time.sleep(3)  # 上传之间拉开间隔，避开 ima 频率限制
         doc = (f"# 反馈 {msg['subject']}\n\n- 收件: {msg['date']}\n- 发件人: {msg['from']}\n"
@@ -218,8 +222,16 @@ def beat_weekly():
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "daily"
+    # CI 无 TTY 时 print 全缓冲，job 被取消/超时后日志全丢——强制行缓冲
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+        sys.stderr.reconfigure(line_buffering=True)
+    except Exception:
+        pass
     import socket
     socket.setdefaulttimeout(60)  # 兜底：任何未显式超时的外呼最多挂 60s，绝不拖死 job
+    global DEADLINE
+    DEADLINE = time.time() + 12 * 60  # 全局预算 12 分钟：宁可砍掉环节也不拖垮 job
     has_creds = ima_client.creds()
     beats = {
         "feedback": beat_feedback,

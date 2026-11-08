@@ -187,15 +187,18 @@ def append_radar_history(hits):
     hist.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def beat_radar(keywords_fallback="AI,拆书,读书,写作,成长"):
-    """四榜 → 匹配 → ima 热点选题 + 仓内 docs/radar-latest.md。"""
+def beat_radar(keywords_fallback="心学,ai,读书,成长"):
+    """四榜 → 匹配 → ima 热点选题 + 仓内 docs/radar-latest.md。
+
+    关键词 = 站长固定关注方向 ∪ 站内 data.js 主题 ∪ 反馈镜像主题。
+    同名日报已入库则跳过，避免重跑堆出时间戳副本。
+    """
     sys.path.insert(0, str(ROOT / "scripts"))
     import interest_radar as ir
-    kws = ir.site_keywords(Path.home() / "my-site") | ir.feedback_keywords()
-    extra = [k for k in keywords_fallback.split(",") if k.strip()]
-    if not kws:
-        kws = set(extra)
-    boards, hits = {}, []
+    site = ir.locate_site_dir()
+    kws = ir.topics() | {k.strip() for k in keywords_fallback.split(",") if k.strip()}
+    kws |= ir.site_keywords(site) | ir.feedback_keywords()
+    boards = {}
     for i, ep in enumerate(ir.SOURCES):
         if i:
             time.sleep(ir.FETCH_GAP)
@@ -203,10 +206,10 @@ def beat_radar(keywords_fallback="AI,拆书,读书,写作,成长"):
             boards[ep] = ir.fetch_board(ep)
         except Exception as e:
             print(f"  {ep} 拉取失败（跳过，R3）: {str(e)[:60]}", file=sys.stderr)
-    hits = ir.match(kws, boards, site_titles=ir.site_titles(Path.home() / "my-site"))
+    hits = ir.match(kws, boards, site_titles=ir.site_titles(site))
     report = "\n".join([
         f"# 兴趣雷达 · {time.strftime('%Y-%m-%d %H:%M')} 扫描（autopilot）", "",
-        f"关键词: {', '.join(sorted(kws))}", "",
+        f"关注方向: {', '.join(sorted(kws))}", "",
         f"四榜命中 **{len(hits)}** 条：", ""] +
         [f"- [{h['board']}] {h['title']}（热度 {h['hot']}｜{h['kw']}）" for h in hits[:30]] + [
         "", "## 下一步", "",
@@ -217,12 +220,14 @@ def beat_radar(keywords_fallback="AI,拆书,读书,写作,成长"):
         try:
             kb = ima_client.kb_id()
             folder = ima_client.ensure_folder(kb, KB_DIR["radar"])
-            ima_client.upload_md(kb, folder,
-                          f"雷达-{time.strftime('%Y%m%d')}.md", report)
+            name = f"雷达-{time.strftime('%Y%m%d')}.md"
+            saved = ima_client.upload_md(kb, folder, name, report,
+                                         on_duplicate="skip")
+            if not saved:
+                print("  同日雷达已在 ima，跳过重复入库", file=sys.stderr)
         except Exception as e:
             print(f"  雷达入 ima 失败（仓内报告已留）: {str(e)[:80]}", file=sys.stderr)
     return f"ok: 命中 {len(hits)}，报告已写 docs/radar-latest.md"
-
 
 def beat_weekly():
     """周报：台账+雷达+反馈三源 → 三重交集选题 → ima 飞轮周报 + 仓内。"""
@@ -238,7 +243,7 @@ def beat_weekly():
     pass_n = sum(1 for r in week_rows if "| PASS |" in r)
     sys.path.insert(0, str(ROOT / "scripts"))
     import interest_radar as _ir
-    site_titles = _ir.site_titles(Path.home() / "my-site")
+    site_titles = _ir.site_titles(_ir.locate_site_dir())
     lines += [f"## 一、对账（近 7 天体检 {pass_n}/{len(week_rows)} 天 PASS · 站内文章累计 {len(site_titles)} 篇）", ""]
     if site_titles:
         recent = "、".join(site_titles[-3:])

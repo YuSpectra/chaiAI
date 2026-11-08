@@ -188,12 +188,19 @@ def _cos_put(cred, data, content_type, timeout=45):
         r.read()
 
 
-def upload_md(kb, folder_id, file_name, text):
-    """markdown → media_type 7；重名自动加时间戳后缀（幂等可重入）。"""
+def upload_md(kb, folder_id, file_name, text, on_duplicate="suffix"):
+    """markdown → media_type 7。
+
+    on_duplicate:
+      "suffix" → 重名自动加时间戳后缀（默认，兼容旧行为）
+      "skip"   → 重名直接返回 None（同名日报不产生重复副本）
+    """
     data = post("openapi/wiki/v1/check_repeated_names",
                 {"params": [{"name": file_name, "media_type": 7}],
                  "knowledge_base_id": kb, "folder_id": folder_id})
     if bool(((data.get("results") or [{}])[0]).get("is_repeated")):
+        if on_duplicate == "skip":
+            return None
         stem, _, ext = file_name.rpartition(".")
         file_name = f"{stem}_{time.strftime('%Y%m%d%H%M%S')}.{ext}"
     payload = text.encode("utf-8")
@@ -213,9 +220,12 @@ def upload_md(kb, folder_id, file_name, text):
     return file_name
 
 
-def save_to_dir(dir_name, file_name, text):
-    """一条龙：定位库 → 确保目录（独立新建）→ 上传 md。返回 (目录, 文件名)。"""
+def save_to_dir(dir_name, file_name, text, on_duplicate="suffix"):
+    """一条龙：定位库 → 确保目录（独立新建）→ 上传 md。
+
+    返回 (目录, 文件名)；on_duplicate="skip" 且同名已存在时文件名为 None。
+    """
     kb = kb_id()
     fid = ensure_folder(kb, dir_name)
-    name = upload_md(kb, fid, file_name, text)
+    name = upload_md(kb, fid, file_name, text, on_duplicate=on_duplicate)
     return dir_name, name

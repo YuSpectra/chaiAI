@@ -58,7 +58,14 @@ DRY_RUN = os.environ.get("DRY_RUN") == "1"
 FORM_SUBMIT_FROM = "formsubmit.co"
 DEDUPE_FOLDER = "ChaiReplied"          # 沿用旧文件夹名，历史记号继续有效
 DEDUPE_MAX = 400
-DIRECT_SUBJECT_KEYS = ("读者来信", "观子喻知", "yuspectra")
+DIRECT_SUBJECT_KEYS = ("读者来信",)   # 直投信必须带这四个字，避免误认通知邮件
+# 系统/通知类发件人：绝不回信（否则会把 GitHub 构建通知当成读者来信）
+SYSTEM_LOCAL_EXACT = {
+    "no-reply", "noreply", "no_reply", "postmaster", "mailer-daemon",
+    "notifications", "notification", "support", "service", "bounce",
+}
+SYSTEM_ADDRESSES = {"10000@qq.com", "10000@vip.qq.com"}
+SYSTEM_DOMAINS = ("github.com", "githubusercontent.com", "formsubmit.co")
 
 SITE_URL = "https://yuspectra.github.io/chaiAI/"
 SIGN_NAME = "观子喻知 YuSpectra"
@@ -117,6 +124,20 @@ def clean_header(value: str) -> str:
     return re.sub(r"\s+", " ", (value or "")).strip()
 
 
+def is_system_sender(addr: str) -> bool:
+    addr = (addr or "").strip().lower()
+    if not addr or "@" not in addr:
+        return True
+    local, _, domain = addr.partition("@")
+    if addr in SYSTEM_ADDRESSES or addr == OWNER_EMAIL:
+        return True
+    if local in SYSTEM_LOCAL_EXACT or local.startswith(("no-reply", "noreply", "no_reply")):
+        return True
+    if domain in SYSTEM_DOMAINS or domain.endswith(".github.com"):
+        return True
+    return False
+
+
 def message_text(msg) -> str:
     """取出正文（优先 HTML，FormSubmit 的表格在 HTML 里）。"""
     html_part, plain_part = "", ""
@@ -168,9 +189,9 @@ def pick_visitor_email(fields: dict, msg) -> str:
         addr = addr.strip().strip(".,;:").lower()
         if not addr or "@" not in addr:
             continue
-        if addr == OWNER_EMAIL or addr.endswith("@" + FORM_SUBMIT_FROM):
+        if addr.endswith("@" + FORM_SUBMIT_FROM):
             continue
-        if addr.startswith(("no-reply", "noreply", "postmaster", "mailer-daemon")):
+        if is_system_sender(addr):
             continue
         return addr
     return ""
@@ -339,14 +360,10 @@ def classify(msg) -> tuple[str, dict, str, str]:
         visitor = pick_visitor_email(fields, msg)
         return kind, fields, visitor, subject
 
-    # B. 读者直接写信（主题带关键词）
-    if any(k in (subject or "").lower() for k in DIRECT_SUBJECT_KEYS):
+    # B. 读者直接写信（主题必须带「读者来信」）
+    if any(k in (subject or "") for k in DIRECT_SUBJECT_KEYS):
         sender_addr = parseaddr(decode_hdr(msg.get("From")))[1].strip().lower()
-        if not sender_addr or sender_addr == OWNER_EMAIL:
-            return "", {}, "", subject
-        if sender_addr.endswith("@" + FORM_SUBMIT_FROM):
-            return "", {}, "", subject
-        if sender_addr.startswith(("no-reply", "noreply", "postmaster", "mailer-daemon")):
+        if is_system_sender(sender_addr):
             return "", {}, "", subject
         plain = cell_text(body)
         fields = {"留言内容": plain[:1200]} if plain else {}
@@ -399,9 +416,10 @@ def main() -> int:
             continue
 
         sender = decode_hdr(head.get("From")).lower()
+        sender_addr = parseaddr(decode_hdr(head.get("From")))[1].strip().lower()
         subject = decode_hdr(head.get("Subject"))
         is_form = FORM_SUBMIT_FROM in sender
-        is_direct = any(k in (subject or "").lower() for k in DIRECT_SUBJECT_KEYS)
+        is_direct = any(k in (subject or "") for k in DIRECT_SUBJECT_KEYS) and not is_system_sender(sender_addr)
         if not (is_form or is_direct):
             skipped += 1
             continue

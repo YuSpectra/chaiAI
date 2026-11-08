@@ -46,6 +46,60 @@
       <div class="container" id="connect-links"></div>
     </section>
 
+    <section class="section section--tight" id="letter">
+      <div class="container">
+        <div class="letter">
+          <div class="letter__aside">
+            <span class="eyebrow">Write / 写信</span>
+            <h2>写一封信给我</h2>
+            <p>读到一段有用的东西、看到一处好看的光，或者只是想打个招呼，都可以写在这里。邮件会直接进我的收件箱。</p>
+            <ul class="letter__list">
+              <li><span>01</span>填好下面的三项，点「寄出」</li>
+              <li><span>02</span>系统会先回你一封确认信（通常几分钟内）</li>
+              <li><span>03</span>我本人看过后再回你，一般 24 小时内</li>
+            </ul>
+            <p class="letter__fallback">不想填表？直接写邮件到 <a href="mailto:1414330095@qq.com?subject=%E3%80%90%E8%AF%BB%E8%80%85%E6%9D%A5%E4%BF%A1%E3%80%91">1414330095@qq.com</a>，主题保留「【读者来信】」这四个字，同样会收到确认信。</p>
+          </div>
+
+          <form class="letter__form" id="letter-form" action="https://formsubmit.co/1414330095@qq.com" method="POST">
+            <input type="hidden" name="_subject" value="【观子喻知】读者来信">
+            <input type="hidden" name="_template" value="table">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_next" value="https://yuspectra.github.io/chaiAI/connect.html?sent=1#letter">
+            <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+
+            <div class="field">
+              <label for="lf-kind">这次想聊</label>
+              <select id="lf-kind" name="表单类型">
+                <option value="读者来信">读者来信</option>
+                <option value="内容交流">内容交流</option>
+                <option value="合作咨询">合作咨询</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="lf-name">怎么称呼你</label>
+              <input id="lf-name" name="称呼" type="text" maxlength="40" placeholder="选填">
+            </div>
+
+            <div class="field">
+              <label for="lf-email">你的邮箱 <span class="field__req">必填</span></label>
+              <input id="lf-email" name="联系方式" type="email" required maxlength="120" placeholder="用来收确认信，不会公开">
+            </div>
+
+            <div class="field">
+              <label for="lf-msg">想说的话 <span class="field__req">必填</span></label>
+              <textarea id="lf-msg" name="留言内容" rows="6" required maxlength="2000" placeholder="最近在读什么、看到了什么，或者只是想打个招呼。"></textarea>
+            </div>
+
+            <button class="btn btn--primary letter__submit" type="submit">寄出这封信</button>
+            <p class="letter__privacy">表单由 FormSubmit 转发到我的邮箱，不会在网站上公开你的地址。</p>
+            <p class="letter__status" id="letter-status" role="status" hidden></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <section class="section section--tight">
       <div class="container">
         <div class="glass cta-banner reveal"><h2>先把这里逛完也不迟</h2><p>六篇笔记、四支视频、八张影像，都是可随时替换的本地示例内容。</p>

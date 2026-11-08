@@ -133,6 +133,47 @@ node scripts/gen-rss.mjs --base https://chai.aibay.asia   # 自定义域名解�
 
 ---
 
+## 四·五、读者来信与自动回信
+
+站内没有后端，来信走「表单转发 + GitHub Actions 定时扫信」这条链路，两条入口都会被认出来：
+
+| 入口 | 读者怎么用 | 落到哪 |
+|---|---|---|
+| A. 站内表单 | `connect.html` 底部的「写一封信给我」，填类型 / 称呼 / 邮箱 / 内容 | FormSubmit 转发到 QQ 邮箱 |
+| B. 直接写信 | 任意邮箱写信到 `1414330095@qq.com`，**主题保留「【读者来信】」** | QQ 邮箱收件箱 |
+
+完整链路：
+
+```
+读者提交 ──► FormSubmit（formsubmit.co）──► QQ 邮箱 1414330095@qq.com
+                                              │
+              .github/workflows/mail-autoreply.yml（每 5 分钟）
+                                              ▼
+                        tools/autoreply/reply.py
+                  认出访客 → 生成确认信 → QQ SMTP 发出
+                                → 原信复制到 ChaiReplied 文件夹（去重记号）
+```
+
+脚本里几条硬规则（改文案就改 `tools/autoreply/reply.py` 顶部的 `KIND_TEXT`）：
+
+- 只认两类信：发件人含 `formsubmit.co`，或主题含「读者来信 / 观子喻知 / yuspectra」。
+- 访客邮箱优先级：表单「联系方式」→ `Reply-To` → 正文里第一个邮箱；自动排除站长本人、`formsubmit.co`、`no-reply`、`mailer-daemon`，避免回信死循环。
+- 去重靠「复制到 `ChaiReplied` 文件夹」+ `Message-ID`，**不看已读状态**（QQ 客户端同步会自动标已读，用已读判断会漏回）。
+- 先发信成功再写记号，发信失败下一轮重试；单轮最多 20 封。
+- 邮件头带 `Auto-Submitted: auto-replied` 与 `X-Yu-Autoreply: 1`，防止两个自动回复互相打乒乓。
+
+**上线后必做一次**：FormSubmit 需要激活。第一次有人（或你自己）提交表单后，QQ 邮箱会收到一封 FormSubmit 的激活邮件，点里面的链接确认，之后转发才生效。若想用隐藏邮箱的哈希地址，激活后 FormSubmit 会给一个 `formsubmit.co/xxxxxxxx` 形式的长地址，替换 `connect.html` 里 `<form action="...">` 即可。
+
+手动检查一次回信脚本（不真发信）：
+
+```bash
+QQ_USER=1414330095@qq.com QQ_AUTH_CODE=<授权码> DRY_RUN=1 python tools/autoreply/reply.py
+```
+
+排障顺序：仓库 Actions 里看 `访客留言自动回信` 最近一次运行日志 → 确认 Secrets `QQ_USER` / `QQ_AUTH_CODE` 仍在 → 确认 FormSubmit 已激活 → 确认仓库 60 天内有过提交（GitHub 会暂停长期无提交仓库的定时任务）。
+
+---
+
 ## 五、部署到 `YuSpectra/chaiAI` / GitHub Pages
 
 本目录已带好发布配置，**推到 `main` 即自动上线**。关键点是复用原仓库已有的 `.github/workflows/deploy.yml`（`npm ci → npm run build → 上传 dist → 部署 Pages`），**不需要改动 workflow 文件**：

@@ -217,7 +217,7 @@
         '<h3>' + esc(c.name) + '</h3>' +
         '<p>' + esc(c.note) + '</p></div>' +
       '<div class="contact-card__actions">' +
-        '<a class="btn btn--primary" href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' +
+        '<a class="btn btn--primary" href="mailto:' + esc(c.email) + '?subject=' + encodeURIComponent('【读者来信】') + '">' + esc(c.email) + '</a>' +
         '<button class="btn btn--ghost btn--sm" data-copy="' + esc(c.email) + '">复制邮箱</button>' +
       '</div></article>';
   }
@@ -542,7 +542,23 @@
       '<div class="btn-row" style="margin-top:20px"><a class="btn btn--ghost btn--sm" href="' + esc(w.officialArticleUrl) + '"' + linkAttr(w.officialArticleUrl) + '>公众号文章链接' + linkArrow(w.officialArticleUrl) + '</a>' +
       '<a class="btn btn--ghost btn--sm" href="' + esc(w.channelUrl) + '"' + linkAttr(w.channelUrl) + '>视频号主页链接' + linkArrow(w.channelUrl) + '</a></div>' +
       '<p style="margin-top:18px;font-size:13px;color:var(--accent)">' + esc(w.hint) + '</p></div>';
+    showLetterStatus();
   };
+
+  /* 表单提交回跳（?sent=1）后给出明确反馈，避免读者以为没寄出 */
+  function showLetterStatus() {
+    var status = $('#letter-status');
+    if (!status) return;
+    var sent = window.location.search.indexOf('sent=1') > -1;
+    if (sent) {
+      status.hidden = false;
+      status.textContent = '信已寄出。确认信会发到你填的邮箱里，通常几分钟内到达；没看到的话，记得翻一下垃圾邮件。';
+      var form = $('#letter-form');
+      if (form) form.querySelectorAll('input, textarea, select, button').forEach(function (el) { el.disabled = true; });
+      var anchor = $('#letter');
+      if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
 
   pages.tags = function () {
     var cloud = $('#tag-cloud');

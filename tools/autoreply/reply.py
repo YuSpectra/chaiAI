@@ -70,6 +70,7 @@ SYSTEM_DOMAINS = ("github.com", "githubusercontent.com", "formsubmit.co")
 SITE_URL = "https://yuspectra.github.io/chaiAI/"
 SIGN_NAME = "观子喻知 YuSpectra"
 SIGN_PERSON = "子喻"
+SIGN_TITLE = "【观子喻知】的主理人。向外体察，读懂万象，启思创造，拥抱探索。"
 ACCENT = "#1c6b64"
 
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
@@ -269,7 +270,7 @@ def reply_text(name: str, copy: dict, quoted: list) -> tuple[str, str]:
     hello = f"{name}，你好：" if name else "你好："
     lines = [hello, "", copy["lead"], copy["next"], ""]
     lines += ["这封信可以直接回复，我会收到。", ""]
-    lines += [f"—— {SIGN_PERSON}", SITE_URL, ""]
+    lines += [f"我是{SIGN_PERSON}，{SIGN_TITLE}", SITE_URL, ""]
     if quoted:
         lines += ["-" * 46, "你提交的内容（系统自动留档，无需回复本信）："]
         lines += [f"  {label}：{value}" for label, value in quoted]
@@ -305,7 +306,7 @@ def reply_text(name: str, copy: dict, quoted: list) -> tuple[str, str]:
       这封信可以直接回复，我会收到。
     </p>
     {table}
-    <p style="font-size:14px;line-height:1.8;color:#1c2431;margin:0 0 2px">—— {SIGN_PERSON}</p>
+    <p style="font-size:14px;line-height:1.9;color:#1c2431;margin:0 0 6px">我是{SIGN_PERSON}，{SIGN_TITLE}</p>
     <p style="font-size:13px;margin:0 0 22px"><a href="{SITE_URL}" style="color:{ACCENT};text-decoration:none">{SITE_URL}</a></p>
     <div style="border-top:1px solid #e5e8ed;padding-top:14px;font-size:12px;color:#9aa2ae;line-height:1.7">
       这封信自动发出，直接回复即可联系到我。

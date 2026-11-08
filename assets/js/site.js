@@ -540,7 +540,21 @@
       '<a class="btn btn--ghost btn--sm" href="' + esc(w.channelUrl) + '"' + linkAttr(w.channelUrl) + '>视频号主页链接' + linkArrow(w.channelUrl) + '</a></div>' +
       '<p style="margin-top:18px;font-size:13px;color:var(--accent)">' + esc(w.hint) + '</p></div>';
     showLetterStatus();
+    bindLetterForm();
   };
+
+  /* 三项都不填就寄出没有意义，拦一下并给一句提示 */
+  function bindLetterForm() {
+    var form = $('#letter-form');
+    if (!form) return;
+    var val = function (sel) { var el = $(sel); return el ? el.value.trim() : ''; };
+    form.addEventListener('submit', function (e) {
+      if (val('#lf-name') || val('#lf-msg') || val('#lf-email')) return;
+      e.preventDefault();
+      var st = $('#letter-status');
+      if (st) { st.hidden = false; st.textContent = '至少写一句话再寄出吧，哪怕只是打个招呼。'; }
+    });
+  }
 
   /* 表单提交回跳（?sent=1）后给出明确反馈，避免读者以为没寄出 */
   function showLetterStatus() {

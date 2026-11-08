@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>搜索 · 观子喻知 YuSpectra</title>
+  <meta name="description" content="在观子喻知 YuSpectra 全站搜索文章、视频、影像与标签。">
+  <meta name="theme-color" content="#f8f9fb">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="搜索 · 观子喻知 YuSpectra">
+  <meta property="og:description" content="搜索全站内容。">
+  <meta property="og:image" content="assets/img/og-cover.svg">
+  <link rel="canonical" href="https://chai.aibay.asia/search.html">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="search">
+  <div class="bg-fx" aria-hidden="true"></div>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <section class="container search-hero">
+      <span class="eyebrow">Search everything</span>
+      <h1 style="font-size:clamp(32px,5vw,54px);margin:12px 0">搜索</h1>
+      <p style="color:var(--muted);margin-bottom:22px">输入关键词，实时检索笔记、视频、影像与标签。</p>
+      <label class="search-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+        <input id="search-input" type="search" placeholder="试试「提示词」「城市」「读书笔记」…" aria-label="全站搜索" autocomplete="off">
+      </label>
+    </section>
+    <section class="section section--tight"><div class="container" id="search-results" aria-live="polite"></div></section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>

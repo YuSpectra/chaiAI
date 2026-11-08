@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>影像 · 观子喻知 YuSpectra</title>
+  <meta name="description" content="观子喻知 YuSpectra 的影像画廊：AI 图像、摄影与视觉实验，瀑布流布局，点击图片打开灯箱预览。">
+  <meta name="theme-color" content="#f8f9fb">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="影像 · 观子喻知 YuSpectra">
+  <meta property="og:description" content="AI 图像、摄影与视觉实验，点击任意一张放大预览。">
+  <meta property="og:image" content="assets/img/og-cover.svg">
+  <link rel="canonical" href="https://chai.aibay.asia/gallery.html">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="gallery">
+  <div class="bg-fx" aria-hidden="true"></div>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <section class="container page-head">
+      <span class="eyebrow">Gallery</span>
+      <h1>影像</h1>
+      <p>AI 图像、摄影和视觉实验。瀑布流里每张图都有标题、标签、日期与一句说明，点击可放大、左右切换，Esc 关闭。</p>
+    </section>
+
+    <section class="section section--tight">
+      <div class="container">
+        <p class="result-count" id="gallery-count"></p>
+        <div class="masonry" id="gallery-grid"></div>
+        <div class="glass cta-banner reveal" style="margin-top:36px"><h2>影像之外还有文字</h2><p>部分影像背后的拍摄与生成过程，写在观测笔记里。</p>
+          <div class="btn-row" style="justify-content:center"><a class="btn btn--primary" href="notes.html">读笔记</a><a class="btn btn--ghost" href="videos.html">看视频</a></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>

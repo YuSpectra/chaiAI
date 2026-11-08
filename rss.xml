@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 域名已指向 https://chai.aibay.asia；条目为示例文章，发布真实内容后同步更新 -->
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>观子喻知 YuSpectra</title>
+    <link>https://chai.aibay.asia/</link>
+    <description>向外体察，读懂万象，启思创造，拥抱探索。To observe, to understand, to create, to embrace.</description>
+    <language>zh-CN</language>
+    <lastBuildDate>Sun, 08 Nov 2026 12:00:00 +0800</lastBuildDate>
+    <atom:link href="https://chai.aibay.asia/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>把一本书拆成一张可执行的地图</title>
+      <link>https://chai.aibay.asia/note.html?slug=map-of-a-book</link>
+      <guid>https://chai.aibay.asia/note.html?slug=map-of-a-book</guid>
+      <pubDate>Wed, 28 Oct 2026 09:00:00 +0800</pubDate>
+      <description>读书笔记不必复述全书。把作者的论证拆成「问题—证据—行动」，一张纸就能带走一本书。</description>
+    </item>
+    <item>
+      <title>AI 生成的第一帧，和我拍下的最后一帧</title>
+      <link>https://chai.aibay.asia/note.html?slug=first-frame-last-frame</link>
+      <guid>https://chai.aibay.asia/note.html?slug=first-frame-last-frame</guid>
+      <pubDate>Tue, 21 Oct 2026 09:00:00 +0800</pubDate>
+      <description>同一场黄昏，一次由提示词生成，一次由快门记录。两者的差别不在画质，而在「我在不在场」。</description>
+    </item>
+    <item>
+      <title>在提示词里给自己留一扇窗</title>
+      <link>https://chai.aibay.asia/note.html?slug=a-window-in-the-prompt</link>
+      <guid>https://chai.aibay.asia/note.html?slug=a-window-in-the-prompt</guid>
+      <pubDate>Wed, 14 Oct 2026 09:00:00 +0800</pubDate>
+      <description>把提示词写得越满，结果越像指令的复印件。留出不确定，创作才有呼吸的缝隙。</description>
+    </item>
+    <item>
+      <title>城市夜行日志：光是另一种语言</title>
+      <link>https://chai.aibay.asia/note.html?slug=city-at-night-log</link>
+      <guid>https://chai.aibay.asia/note.html?slug=city-at-night-log</guid>
+      <pubDate>Tue, 06 Oct 2026 09:00:00 +0800</pubDate>
+      <description>一支三分钟夜拍视频的文字版：关于灯光、反射，以及为什么我总在天黑之后才出门。</description>
+    </item>
+    <item>
+      <title>读《技术物的政治》：工具也在塑造我们</title>
+      <link>https://chai.aibay.asia/note.html?slug=tools-shape-us</link>
+      <guid>https://chai.aibay.asia/note.html?slug=tools-shape-us</guid>
+      <pubDate>Tue, 29 Sep 2026 09:00:00 +0800</pubDate>
+      <description>我们以为自己在用工具，其实也在被工具的默认设置重新安排注意力与判断。</description>
+    </item>
+    <item>
+      <title>让模型学会「不确定」：一次失败的实验</title>
+      <link>https://chai.aibay.asia/note.html?slug=teach-model-uncertainty</link>
+      <guid>https://chai.aibay.asia/note.html?slug=teach-model-uncertainty</guid>
+      <pubDate>Fri, 18 Sep 2026 09:00:00 +0800</pubDate>
+      <description>我想让模型在没把握时说「我不知道」，结果它学会了把每句话都包装得更像不知道。</description>
+    </item>
+  </channel>
+</rss>

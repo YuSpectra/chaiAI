@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chai.aibay.asia/sitemap.xml

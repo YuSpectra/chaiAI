@@ -1,27 +1,92 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>小蛮腰·拆AI — 工作坊课程阵地 | 拆的是 AI，拆为己用</title>
-    <meta name="description" content="拆AI工坊：每期当场拆开一个真实 AI 软件并跑通你的工作流。首场 11 月 1 日 ima 知识库开课，个人网站·workbuddy、企查查·读懂你的客户、知识星球 11 月排期中；证券、办公、知识、生活等 36 个主题开放「我支持」投票，支持数高的先开。把 AI 软件拆成你的生产力。" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script>
-      // SPA redirect for GitHub Pages (handled via 404.html)
-      (function() {
-        var redirect = sessionStorage.redirect
-        delete sessionStorage.redirect
-        if (redirect && redirect !== window.location.pathname) {
-          history.replaceState(null, null, redirect)
-        }
-      })()
-    </script>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>观子喻知 YuSpectra · 向外体察，读懂万象，启思创造，拥抱探索</title>
+  <meta name="description" content="欢迎来到观子喻知 YuSpectra。向外体察，读懂万象，启思创造，拥抱探索。AI 生成与原创的文章、读书笔记、视频、影像和视觉实验，内容持续更新。">
+  <meta name="theme-color" content="#f8f9fb">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="观子喻知 YuSpectra · 向外体察，读懂万象，启思创造，拥抱探索">
+  <meta property="og:description" content="To observe, to understand, to create, to embrace.">
+  <meta property="og:image" content="assets/img/og-cover.svg">
+  <link rel="canonical" href="https://chai.aibay.asia/">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+  <div class="bg-fx" aria-hidden="true"></div>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container">
+        <div class="hero__inner">
+          <span class="hero__badge"><i></i> 个人内容品牌 · 持续更新中</span>
+          <h1><span>观子喻知</span><span class="en">YuSpectra</span></h1>
+          <p class="hero__slogan">向外体察，读懂万象，启思创造，拥抱探索。</p>
+          <p class="hero__slogan-en">To observe, to understand, to create, to embrace.</p>
+          <div class="btn-row">
+            <a class="btn btn--primary" href="#explore">开始探索 →</a>
+            <a class="btn" href="notes.html">读笔记</a>
+            <a class="btn btn--ghost" href="connect.html">连接我</a>
+          </div>
+          <div class="hero__stats"><span><b>06</b>观测笔记</span><span><b>04</b>视频日志</span><span><b>08</b>影像实验</span><span><b>∞</b>保持好奇</span></div>
+        </div>
+        <div class="hero__visual" aria-hidden="true"><span>OBSERVE · SPECTRA</span></div>
+      </div>
+      <div class="ticker" aria-label="内容标签"><div class="ticker__track" id="ticker-track"></div></div>
+    </section>
+
+    <section class="section" id="explore">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">Four keywords</span><h2>四个关键词，一条探索路径</h2><p>从看见到读懂，从创造到拥抱——每一步都留着一点好奇。</p></div><a class="text-link" href="about.html">了解品牌 →</a></div>
+        <div class="keyword-grid" id="keywords-grid"></div>
+      </div>
+    </section>
+
+    <section class="section section--tight">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">Featured notes</span><h2>精选笔记</h2><p>读书笔记、观察随笔、AI 创作思考与视频日志文字版。</p></div><a class="text-link" href="notes.html">全部笔记 →</a></div>
+        <div class="card-grid" id="featured-notes"></div>
+      </div>
+    </section>
+
+    <section class="section section--tight">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">Video wall</span><h2>视频墙</h2><p>AI 生成视频与个人拍摄，点开看创作现场。</p></div><a class="text-link" href="videos.html">全部视频 →</a></div>
+        <div class="video-wall" id="video-wall"></div>
+      </div>
+    </section>
+
+    <section class="section section--tight">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">Gallery</span><h2>影像</h2><p>AI 图像、摄影与视觉实验，点击任意一张放大预览。</p></div><a class="text-link" href="gallery.html">进入画廊 →</a></div>
+        <div class="masonry" id="gallery-preview"></div>
+      </div>
+    </section>
+
+    <section class="section section--tight">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">Latest stream</span><h2>最新内容流</h2><p>文章、视频、影像混在一条时间线里，体现内容持续更新。</p></div><a class="text-link" href="search.html">全站搜索 →</a></div>
+        <div class="timeline" id="timeline-stream"></div>
+      </div>
+    </section>
+
+    <section class="section section--tight">
+      <div class="container">
+        <div class="glass cta-banner reveal"><span class="eyebrow">Stay connected</span><h2>一起向外体察</h2><p>欢迎来到【观子喻知】。内容持续更新，邀你一同探寻。微信内打开更佳。</p><div class="btn-row" style="justify-content:center"><a class="btn btn--primary" href="connect.html">查看全部连接方式 →</a><a class="btn btn--ghost" href="notes.html">先读点什么</a></div></div>
+        <div class="qr-grid" id="connect-cards" style="margin-top:22px"></div>
+        <p class="connect-note">微信内打开更佳 · 当前为虚拟二维码与演示链接（均指向本站），替换方式见 README.md</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/site.js"></script>
+</body>
 </html>

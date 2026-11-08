@@ -274,7 +274,7 @@ def reply_text(name: str, copy: dict, quoted: list) -> tuple[str, str]:
         lines += ["-" * 46, "你提交的内容（系统自动留档，无需回复本信）："]
         lines += [f"  {label}：{value}" for label, value in quoted]
         lines += [""]
-    lines += ["这是一封系统自动发送的确认信。"]
+    lines += ["这封信自动发出，直接回复即可。"]
     text = "\n".join(lines)
 
     rows = "".join(
@@ -308,7 +308,7 @@ def reply_text(name: str, copy: dict, quoted: list) -> tuple[str, str]:
     <p style="font-size:14px;line-height:1.8;color:#1c2431;margin:0 0 2px">—— {SIGN_PERSON}</p>
     <p style="font-size:13px;margin:0 0 22px"><a href="{SITE_URL}" style="color:{ACCENT};text-decoration:none">{SITE_URL}</a></p>
     <div style="border-top:1px solid #e5e8ed;padding-top:14px;font-size:12px;color:#9aa2ae;line-height:1.7">
-      这是一封系统自动发送的确认信，回复本信即可联系到我。
+      这封信自动发出，直接回复即可联系到我。
     </div>
   </div>
 </div>

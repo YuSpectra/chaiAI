@@ -30,12 +30,21 @@ window.SITE = {
     focus: ['读书笔记', '影像记录', '视觉实验', '创作手记'],
   },
 
-  /* 连接方式：真实有效信息，随时可以直接联系 */
+  /* 连接方式：不在页面展示邮箱地址，读者统一通过连接页的留言板写信；
+   * 邮箱只作为表单的转发地址（见 connect.html 的 form action），不对外显示。 */
   contact: {
     name: '子喻',
-    email: '1414330095@qq.com',
-    note: '写信给我：聊聊最近读的一本书、拍下的一段画面，或者只是打个招呼。',
+    note: '聊聊最近读的一本书、拍下的一段画面，或者只是打个招呼。',
   },
+
+  /* 微信相关入口先指向本站；GitHub 是真实仓库链接，保留 */
+  social: [
+    { label: '写留言', url: 'connect.html#letter' },
+    { label: 'GitHub', url: 'https://github.com/YuSpectra/chaiAI' },
+    { label: '公众号', url: 'index.html' },
+    { label: '视频号', url: 'videos.html' },
+    { label: 'RSS', url: 'rss.xml' },
+  ],
 
   /* 演示状态：两张二维码为「虚拟二维码」（外观像二维码但不可扫码，图上已标注 DEMO），
    * 所有公众号 / 视频号外链先指向本站页面，不再出现假的微信域名。
@@ -55,15 +64,6 @@ window.SITE = {
     qrHint: '虚拟二维码 · 演示用，暂不可扫码',
     hint: '当前为演示状态：二维码不可扫码，按钮与外链均指向本站 · 微信内打开更佳',
   },
-
-  /* 微信相关入口先指向本站；GitHub 是真实仓库链接，保留 */
-  social: [
-    { label: '邮箱', url: 'mailto:1414330095@qq.com' },
-    { label: 'GitHub', url: 'https://github.com/YuSpectra/chaiAI' },
-    { label: '公众号', url: 'index.html' },
-    { label: '视频号', url: 'videos.html' },
-    { label: 'RSS', url: 'rss.xml' },
-  ],
 
   copyright: '© 2026 观子喻知 YuSpectra · 向外体察，读懂万象，启思创造，拥抱探索。',
 };

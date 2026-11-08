@@ -210,15 +210,13 @@
   }
 
   function contactCard() {
-    var c = S.contact;
-    if (!c || !c.email) return '';
+    var c = S.contact || {};
     return '<article class="glass contact-card reveal">' +
       '<div class="contact-card__main"><span class="eyebrow">Say hello / 连接我</span>' +
-        '<h3>' + esc(c.name) + '</h3>' +
-        '<p>' + esc(c.note) + '</p></div>' +
+        '<h3>' + esc(c.name || S.brandZh) + '</h3>' +
+        '<p>' + esc(c.note || '') + '</p></div>' +
       '<div class="contact-card__actions">' +
-        '<a class="btn btn--primary" href="mailto:' + esc(c.email) + '?subject=' + encodeURIComponent('【读者来信】') + '">' + esc(c.email) + '</a>' +
-        '<button class="btn btn--ghost btn--sm" data-copy="' + esc(c.email) + '">复制邮箱</button>' +
+        '<a class="btn btn--primary" href="connect.html#letter">写一封信给我</a>' +
       '</div></article>';
   }
 
@@ -533,7 +531,6 @@
   pages.connect = function () {
     var cc = $('#connect-cards');
     if (cc) cc.innerHTML = qrCard('official') + qrCard('channel');
-    var coc = $('#connect-contact'); if (coc) coc.innerHTML = contactCard();
     var links = $('#connect-links');
     var w = S.wechat;
     if (links) links.innerHTML =
@@ -552,7 +549,7 @@
     var sent = window.location.search.indexOf('sent=1') > -1;
     if (sent) {
       status.hidden = false;
-      status.textContent = '信已寄出。确认信会发到你填的邮箱里，通常几分钟内到达；没看到的话，记得翻一下垃圾邮件。';
+      status.textContent = '信已寄出。我会一封一封看完，留了邮箱的话会回到你的邮箱。';
       var form = $('#letter-form');
       if (form) form.querySelectorAll('input, textarea, select, button').forEach(function (el) { el.disabled = true; });
       var anchor = $('#letter');

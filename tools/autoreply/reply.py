@@ -35,7 +35,6 @@ from __future__ import annotations
 import datetime as dt
 import email
 import html
-import json
 import imaplib
 import os
 import re
@@ -392,33 +391,6 @@ def classify(msg) -> tuple[str, dict, str, str]:
     return "", {}, "", subject
 
 
-def dump_public_letters(conn) -> None:
-    """[临时] 导出愿意公开的来信原文，供站长润色成笔记；用完即删。"""
-    typ, _ = conn.select(f'"{DEDUPE_FOLDER}"')
-    if typ != "OK":
-        return
-    typ, data = conn.uid("SEARCH", None, "ALL")
-    if typ != "OK" or not data or not data[0]:
-        return
-    for uid in data[0].split()[-12:]:
-        typ, fetched = conn.uid("FETCH", uid, "(BODY.PEEK[])")
-        if typ != "OK" or not fetched or not isinstance(fetched[0], tuple):
-            continue
-        orig = email.message_from_bytes(fetched[0][1])
-        kind, fields, _, subject = classify(orig)
-        if not fields.get("是否愿意公开"):
-            continue
-        out = {
-            "date": decode_hdr(orig.get("Date")),
-            "subject": subject,
-            "kind": kind,
-            "share": fields.get("是否愿意公开"),
-            "称呼": fields.get("称呼", ""),
-            "留言内容": fields.get("留言内容", ""),
-        }
-        print("[EXPORT] " + json.dumps(out, ensure_ascii=False))
-
-
 def main() -> int:
     if not QQ_USER or not QQ_AUTH_CODE:
         print("[error] 缺少 QQ_USER / QQ_AUTH_CODE")
@@ -508,7 +480,6 @@ def main() -> int:
             replied_ids.add(msg_id)
 
     prune_dedupe_folder(conn)
-    dump_public_letters(conn)
     try:
         conn.logout()
     except Exception:

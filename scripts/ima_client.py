@@ -27,6 +27,7 @@ import hashlib
 import hmac
 import json
 import os
+import sys
 import time
 import urllib.parse
 import urllib.request
@@ -56,7 +57,19 @@ def creds():
     return (cid, key) if (cid and key) else None
 
 
-def post(path, body, timeout=30):
+_LAST_CALL = [0.0]
+
+
+def _throttle(min_gap=0.6):
+    """全局最小调用间隔：ima openapi 限流很紧，突发连打必挂。"""
+    gap = time.time() - _LAST_CALL[0]
+    if gap < min_gap:
+        time.sleep(min_gap - gap)
+    _LAST_CALL[0] = time.time()
+
+
+def _post_once(path, body, timeout):
+    _throttle()
     c = creds()
     if c is None:
         raise ImaError("ima 凭据缺失：设 IMA_CLIENT_ID/IMA_API_KEY 或写 ~/.config/ima/{client_id,api_key}")
@@ -65,11 +78,34 @@ def post(path, body, timeout=30):
         f"{IMA_BASE}/{path}", data=payload, method="POST",
         headers={"Content-Type": "application/json",
                  "ima-openapi-clientid": c[0], "ima-openapi-apikey": c[1]})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        d = json.loads(r.read().decode("utf-8"))
-    if d.get("code") != 0:
-        raise ImaError(f"ima {path} code={d.get('code')} msg={d.get('msg')}")
-    return d.get("data") or {}
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:  # 限流/权限走 403 body，需要解析出 code
+        raw = e.read().decode("utf-8", "replace")
+        try:
+            return json.loads(raw)
+        except Exception:
+            raise ImaError(f"ima {path} HTTP {e.code}: {raw[:200]}")
+
+
+def post(path, body, timeout=30, retries=4):
+    """调 openapi；码 200001（请求频率超限）自动指数退避重试——CI 连跑多个环节很容易撞限流。"""
+    delay = 5
+    for attempt in range(retries):
+        d = _post_once(path, body, timeout)
+        code = d.get("code")
+        if code == 0:
+            return d.get("data") or {}
+        msg = str(d.get("msg") or "")
+        if code == 200001 or "频率" in msg:
+            if attempt == retries - 1:
+                raise ImaError(f"ima {path} 限流未恢复 code={code} msg={msg}")
+            print(f"  ima 限流，{delay}s 后重试（{attempt + 1}/{retries - 1}）", file=sys.stderr)
+            time.sleep(delay)
+            delay *= 3
+            continue
+        raise ImaError(f"ima {path} code={code} msg={msg}")
 
 
 def kb_id():

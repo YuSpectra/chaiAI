@@ -55,12 +55,14 @@ def beat_feedback():
         return "skip: 无 email.json"
     cfg = json.loads(cfgp.read_text(encoding="utf-8"))
     since = time.strftime("%d-%b-%Y", time.gmtime(time.time() - 7 * 86400))
-    m = imaplib.IMAP4_SSL(cfg["host"], cfg.get("port", 993))
+    # 云端 runner 连 QQ IMAP 可能被静默丢包，不设超时会无限挂住整个 job
+    m = imaplib.IMAP4_SSL(cfg["host"], cfg.get("port", 993), timeout=45)
     m.login(cfg["user"], cfg["password"])
     m.select(cfg.get("mailbox", "INBOX"), readonly=True)
     _, data = m.search(None, f'(SINCE "{since}")')
+    nums = data[0].split()[-10:]  # 单轮上限 10 封：控住 ima 限流与 job 时长
     msgs = []
-    for num in data[0].split():
+    for num in nums:
         _, d = m.fetch(num, "(RFC822)")
         msg = em.message_from_bytes(d[0][1])
 
@@ -103,7 +105,9 @@ def beat_feedback():
     kb = ima_client.kb_id()
     folder = ima_client.ensure_folder(kb, KB_DIR["feedback"])
     n = 0
-    for msg in msgs:
+    for i, msg in enumerate(msgs):
+        if i:
+            time.sleep(3)  # 上传之间拉开间隔，避开 ima 频率限制
         doc = (f"# 反馈 {msg['subject']}\n\n- 收件: {msg['date']}\n- 发件人: {msg['from']}\n"
                f"- 归档: {time.strftime('%Y-%m-%d %H:%M')} autopilot\n- 状态: 待处理\n\n"
                f"## 原文\n\n{msg['body']}\n\n## 摘要（下一轮迭代信号）\n\n（待补）\n")
@@ -214,6 +218,8 @@ def beat_weekly():
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "daily"
+    import socket
+    socket.setdefaulttimeout(60)  # 兜底：任何未显式超时的外呼最多挂 60s，绝不拖死 job
     has_creds = ima_client.creds()
     beats = {
         "feedback": beat_feedback,

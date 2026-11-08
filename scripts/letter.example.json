@@ -1,12 +1,11 @@
 {
   "slug": "example-letter",
   "title": "回信标题（整理后的笔记名）",
-  "question": "来信里问的原话，会被转述",
-  "from": "一位读者",
   "date": "2026-11-08",
   "readTime": "5 分钟",
   "excerpt": "一句话说清这封回信讲了什么",
   "tags": ["读者来信"],
+  "cover": "assets/img/note-06.jpg",
   "body": [
     "<p>开头先交代：最近收到一位读者的来信，TA 在困惑什么……</p>",
     "<p>如果有情绪，先安抚；然后进入正题。</p>",

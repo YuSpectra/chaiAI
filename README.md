@@ -163,12 +163,13 @@ node scripts/gen-rss.mjs --base https://chai.aibay.asia   # 自定义域名解�
 
   ```bash
   # 1. 参照 scripts/letter.example.json 写一份 来信.json（正文是 HTML 字符串数组）
-  # 2. 追加进 data.js 的 LETTERS 并重新生成 RSS
+  # 2. 作为「读者来信」分类的笔记追加进 data.js 的 NOTES，并重新生成 RSS
   node scripts/add-letter.mjs 来信.json
-  # 3. 提交部署后，letters.html 与 rss.xml 自动出现这封回信
+  # 3. 提交部署后，letters.html、note.html 与 rss.xml 自动出现这封回信
   ```
 
   **不会自动发布到网站**——来信内容可能涉及隐私或恶意内容，必须经过人工润色斟酌才能上站。
+  **来信页只陈列笔记**：不展示来信原文、不显示来信人（如「一位读者」「袁小姐」这类称呼）、不放回信展开模块；数据里也不保存这些字段。
 
 - **选「不愿意」**：自动回信里会写明「内容只留在私人记录里，不会出现在网站上」。站长把内容整理到自己的 ima 知识库作私人存档即可（ima 没有公开 API，这一步是手动整理），网站不更新。
 - **没留邮箱**：回信中不提公开的事，默认不公开。

@@ -1,20 +1,19 @@
-/* 把一封读者来信（已润色好的回信笔记）追加到 data.js 的 LETTERS 最前面，并重新生成 rss.xml。
+/* 把一封润色好的回信笔记追加到 data.js 的 NOTES 最前面，并重新生成 rss.xml。
  *
  * 用法：
  *   node scripts/add-letter.mjs 来信.json            # 写入 data.js 并更新 rss.xml
  *   node scripts/add-letter.mjs 来信.json --dry-run  # 只预览，不改文件
  *
- * 来信.json 格式：
+ * 来信.json 格式（页面只展示笔记，不要放来信原文与来信人）：
  * {
- *   "slug": "longchang-ai-anxiety",           // 英文短标识，唯一
- *   "title": "龙场悟道，给 AI 焦虑时代的三样东西",
- *   "question": "来信里问的原话（会被转述）",
- *   "from": "一位读者",
- *   "date": "2026-11-08",
- *   "readTime": "8 分钟",
- *   "excerpt": "一句话摘要",
- *   "tags": ["读者来信"],
- *   "body": ["<p>第一段…</p>", "<h2>…</h2>"]
+ *   "slug": "daodejing-workplace",       // 英文短标识，唯一
+ *   "title": "《道德经》好在哪：复杂职场里的三个用法",
+ *   "date": "2026-11-09",
+ *   "readTime": "7 分钟",
+ *   "excerpt": "一句话说清这封回信讲了什么",
+ *   "tags": ["读者来信", "道德经"],
+ *   "cover": "assets/img/note-06.jpg",  // 选填
+ *   "body": ["<p>开头先交代：前阵子收到一位读者的来信，TA 在困惑什么……</p>", "<h2>…</h2>"]
  * }
  *
  * 写入后还需要提交部署，线上才会出现。不愿意公开的来信不要用这个脚本。
@@ -37,7 +36,7 @@ if (!jsonPath) {
 }
 
 const letter = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-const required = ['slug', 'title', 'question', 'from', 'date', 'readTime', 'excerpt', 'body'];
+const required = ['slug', 'title', 'date', 'readTime', 'excerpt', 'body'];
 const missing = required.filter(k => !letter[k] || (Array.isArray(letter[k]) && !letter[k].length));
 if (missing.length) {
   console.error('来信.json 缺少字段：' + missing.join(', '));
@@ -53,10 +52,10 @@ if (!/^[a-z0-9-]+$/.test(letter.slug)) {
 }
 
 const src = fs.readFileSync(DATA, 'utf8');
-const marker = 'window.LETTERS = [';
+const marker = 'window.NOTES = [';
 const at = src.indexOf(marker);
 if (at < 0) {
-  console.error('data.js 里找不到 window.LETTERS');
+  console.error('data.js 里找不到 window.NOTES');
   process.exit(2);
 }
 if (src.includes("slug: '" + letter.slug + "'") || src.includes('"slug": "' + letter.slug + '"')) {
@@ -64,7 +63,18 @@ if (src.includes("slug: '" + letter.slug + "'") || src.includes('"slug": "' + le
   process.exit(2);
 }
 
-const entry = '  ' + JSON.stringify(letter, null, 2).replace(/\n/g, '\n  ') + ',\n\n';
+const note = {
+  slug: letter.slug,
+  title: letter.title,
+  category: '读者来信',
+  excerpt: letter.excerpt,
+  cover: letter.cover || 'assets/img/og-cover.svg',
+  tags: Array.isArray(letter.tags) && letter.tags.length ? letter.tags : ['读者来信'],
+  date: letter.date,
+  readTime: letter.readTime,
+  body: letter.body,
+};
+const entry = '  ' + JSON.stringify(note, null, 2).replace(/\n/g, '\n  ') + ',\n';
 const out = src.slice(0, at + marker.length) + '\n' + entry + src.slice(at + marker.length);
 
 if (dryRun) {
@@ -75,10 +85,9 @@ if (dryRun) {
 }
 
 fs.writeFileSync(DATA, out, 'utf8');
-console.log('已把「' + letter.title + '」加入 LETTERS 最前面。');
+console.log('已把「' + letter.title + '」加入 NOTES 最前面（读者来信分类）。');
 
-// 重新生成 RSS（含新来信）
 execFileSync(process.execPath, [path.join(ROOT, 'scripts/gen-rss.mjs')], { stdio: 'inherit' });
 
-console.log('\n下一步：提交并部署后，线上 letters.html 和 rss.xml 才会更新。');
-console.log('提示：发布前最好再读一遍正文，确认没有问题原文、没有个人信息。');
+console.log('\n下一步：提交并部署后，线上 letters.html、note.html 和 rss.xml 才会更新。');
+console.log('提示：发布前再读一遍正文，确认没有来信原文、没有个人信息。');

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { submitToOwner } from '../lib/mailer'
 import { CONTACT_EMAIL, CONTACT_WECHAT } from '../config'
+import letters from '../data/letters'
 
 function MessageBoard() {
   const [form, setForm] = useState({ name: '', msg: '', contact: '', website: '' })
@@ -204,6 +205,33 @@ export default function About() {
             <h2 className="text-xl font-bold text-[#1d1d1f] mb-2">留言板</h2>
             <p className="text-sm text-[#6e6e73] mb-4">匿名即可，不用注册任何账号。留个邮箱，我们会自动回你一封确认信。</p>
             <MessageBoard />
+          </div>
+
+          {/* 读者来信选登 */}
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-[#1d1d1f] mb-2">读者来信</h2>
+            <p className="text-sm text-[#6e6e73] mb-4">
+              有趣的提问会在这里公开回信（来信默认匿名选登，不愿公开请在信里注明）。
+              写信到 <span className="text-neon-purple">{CONTACT_EMAIL}</span>，或用上面的留言板。
+            </p>
+            <div className="space-y-4">
+              {letters.map((l, i) => (
+                <details key={i} className="group p-5 rounded-xl bg-dark-card-hover/50 border border-dark-border" open={i === 0}>
+                  <summary className="cursor-pointer list-none flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-[15px] font-bold text-[#1d1d1f] leading-snug">{l.question}</div>
+                      <div className="text-xs text-[#86868b] mt-1">{l.from} · {l.date}</div>
+                    </div>
+                    <span className="text-neon-purple text-xs mt-1 shrink-0 group-open:rotate-90 transition-transform">▶</span>
+                  </summary>
+                  <div className="mt-4 pt-4 border-t border-dark-border space-y-3">
+                    {l.answer.split('\n\n').map((p, j) => (
+                      <p key={j} className="text-sm text-[#3a3a3c] leading-relaxed">{p}</p>
+                    ))}
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
 
           {/* Contact CTA */}

@@ -1,0 +1,42 @@
+name: 访客留言自动回信
+
+# 为什么用 Actions 当"服务器"：
+#   站点是 GitHub Pages，纯静态、没有后端。自动回信需要一个能长期在线、
+#   还能连 SMTP 的东西。Actions 的定时任务正好满足：免费、不用新注册账号、
+#   授权码存在 Secrets 里不进仓库。
+#
+# 代价：定时任务有延迟，GitHub 的 cron 最小间隔 5 分钟，实际常在 5~20 分钟
+#   之间落地。对"已收到你的留言"这类确认信足够，不是即时对话。
+#
+# 注意：仓库连续 60 天没有任何提交时，GitHub 会自动暂停定时任务。
+#   若发现访客收不到自动回信，先来这里点一次 Run workflow 看是否被暂停。
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mail-autoreply
+  cancel-in-progress: false
+
+jobs:
+  reply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 扫描收件箱并回复访客
+        env:
+          QQ_USER: ${{ secrets.QQ_USER }}
+          QQ_AUTH_CODE: ${{ secrets.QQ_AUTH_CODE }}
+          MAX_PER_RUN: '20'
+        run: python tools/autoreply/reply.py

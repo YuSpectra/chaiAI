@@ -131,17 +131,30 @@ def kb_id():
 
 
 def ensure_folder(kb, name):
-    """目录独立新建：不存在则创建；返回 folder_id。"""
-    cursor = ""
-    while True:
-        data = post("openapi/wiki/v1/get_knowledge_list",
-                    {"knowledge_base_id": kb, "folder_id": kb, "cursor": cursor, "limit": 50})
-        for it in data.get("knowledge_list") or []:
+    """目录独立新建：不存在则创建；返回 folder_id。
+
+    get_knowledge_list 被限流时（code=200001）退到 search_knowledge 找目录，
+    再找不到才 create_folder——2026-11-08 实测列表接口单独被限、检索/创建仍可用。
+    """
+    try:
+        cursor = ""
+        while True:
+            data = post("openapi/wiki/v1/get_knowledge_list",
+                        {"knowledge_base_id": kb, "folder_id": kb, "cursor": cursor, "limit": 50})
+            for it in data.get("knowledge_list") or []:
+                if it.get("title") == name and str(it.get("media_id", "")).startswith("folder_"):
+                    return str(it["media_id"])
+            cursor = data.get("next_cursor") or ""
+            if not cursor:
+                break
+    except ImaError as e:
+        if "限流" not in str(e):
+            raise
+        d = post("openapi/wiki/v1/search_knowledge",
+                 {"knowledge_base_id": kb, "query": name, "cursor": "", "limit": 10})
+        for it in d.get("info_list") or []:
             if it.get("title") == name and str(it.get("media_id", "")).startswith("folder_"):
                 return str(it["media_id"])
-        cursor = data.get("next_cursor") or ""
-        if not cursor:
-            break
     d2 = post("openapi/wiki/v1/create_folder",
               {"knowledge_base_id": kb, "name": name, "parent_folder_id": kb})
     fid = str(d2.get("media_id") or "")
